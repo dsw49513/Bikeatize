@@ -9,3 +9,4 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(50), nullable=False)
     password = Column(String(255), nullable=False)
+    refresh_token = Column(String(512), nullable=True)  # Przechowanie refresh token
