@@ -11,9 +11,13 @@ from .utils import verify_password # Sprawdzanie hasła
 from database.database import SessionLocal
 from database.models import User
 
-# Wczytanie zmiennych środowiskowych
-load_dotenv(dotenv_path="D:/Bikeatize/.env") # Jeśli `.env` - Podaj sciezke do env
+# Automatyczne wykrywanie .env w katalogu repozytorium
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Pobiera katalog pliku
+ENV_PATH = os.path.join(BASE_DIR, "..", ".env")  # Wyszukuje .env w katalogu głównym repozytorium
 
+load_dotenv(ENV_PATH)  # Ładuje zmienne środowiskowe
+
+# Pobranie klucza JWT z .env
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError("Brak zmiennej SECRET_KEY w .env!")  # Zapobiega uruchomieniu aplikacji bez klucza
