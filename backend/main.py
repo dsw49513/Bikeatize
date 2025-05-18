@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from backend.routes import router
-from backend.auth import router as auth_router  # Importujemy router autoryzacji
+from backend.auth import router as auth_router  # Import router autoryzacji
 
 app = FastAPI()
-app.include_router(router)
 
-# Rejestrujemy wszystkie routery
+
+# Rejestracja wszystkie routery
 app.include_router(router)  # Główne endpointy
 app.include_router(auth_router)  # Endpointy związane z autoryzacją
 
