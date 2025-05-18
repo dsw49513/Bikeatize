@@ -1,3 +1,5 @@
+# Szyfrowanie haseł
+
 import bcrypt
 
 def hash_password(password: str) -> str:
