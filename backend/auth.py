@@ -4,16 +4,12 @@ from sqlalchemy.future import select
 import jwt
 import datetime
 from dotenv import load_dotenv
-import sys
 import os
 from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer
 from .utils import verify_password # Sprawdzanie hasła
 from database.database import SessionLocal
 from database.models import User
-
-sys.path.append(os.path.abspath("D:/Bikeatize"))
-print(f"sys.path: {sys.path}")  # Debugging - sprawdzamy ścieżki
 
 # Wczytanie zmiennych środowiskowych
 load_dotenv(dotenv_path="D:/Bikeatize/.env") # Jeśli `.env` - Podaj sciezke do env
