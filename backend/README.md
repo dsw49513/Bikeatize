@@ -5,16 +5,19 @@
 # 2. Stwórz wirtualne środowisko i zainstaluj zależności
 
 # 3. Skonfiguruj zmienne środowiskowe
-W katalogu głównym stwórz plik .env <br>
+W głównym katologu stwórz plik .env <br>
 Edytuj .env dodajac wlasne wartości:<br>
 
-DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/bikeatize<br>
-SECRET_KEY=super_secret_key <br>
+<strong>Klucz do podpisywania JWT:</strong><br>
+ECRET_KEY=zmien_mnie_na_sekretny_klucz<br>
+
+<strong>Połączenie z bazą danych (zastąp danymi swojego MySQL)</strong><br>
+DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/bikeatize_db
 
 # 5. Uruchom aplikację
 
 uvicorn backend.main:app --reload <br>
-API powinno działać na: http://127.0.0.1:8000
+API powinno działać na: http://127.0.0.1:8000 (SwaggerUI)
 
 # 6. Lista Endpointów API:
 <ul>
