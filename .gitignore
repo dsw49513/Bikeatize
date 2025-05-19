@@ -3,3 +3,6 @@ database/__pycache__/
 __pycache__/
 *.pyc
 .env
+alembic/__pycache__/
+alembic/versions/*.pyc
+alembic/versions/

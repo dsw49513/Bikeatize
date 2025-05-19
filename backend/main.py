@@ -1,14 +1,21 @@
 from fastapi import FastAPI
-from backend.routes import router
-from backend.auth import router as auth_router  # Import router autoryzacji
+from database.database import init_db  # Import funkcji inicjalizującej bazę danych
+from backend.routes.geolocation import router as geolocation_router
+from backend.auth import router as auth_router  # Router autoryzacji
 
+# Tworzenie aplikacji FastAPI
 app = FastAPI()
 
+# Wywołanie inicjalizacji bazy danych przy starcie serwera
+@app.on_event("startup")
+async def startup_event():
+    await init_db()
 
-# Rejestracja wszystkie routery
-app.include_router(router)  # Główne endpointy
+# Rejestracja routerów
+app.include_router(geolocation_router)  # Endpointy lokalizacji
 app.include_router(auth_router)  # Endpointy związane z autoryzacją
 
+# Endpoint testowy, aby sprawdzić, czy API działa
 @app.get("/")
 async def root():
     return {"message": "API is running!"}
