@@ -6,3 +6,5 @@ __pycache__/
 alembic/__pycache__/
 alembic/versions/*.pyc
 alembic/versions/
+frontend/node_modules/
+frontend/package-lock.json
