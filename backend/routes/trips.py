@@ -10,7 +10,7 @@ router = APIRouter()
 @router.post("/start_trip/{user_id}")  # Definicja endpointu dla rozpoczecia trasy
 async def start_trip(user_id: int, db: AsyncSession = Depends(get_db)):
     try:
-        print(f"🚀 Startujemy trasę dla user_id: {user_id}")
+        print(f" Start nowej trasy dla user_id: {user_id}")
 
         # Nowy rekord wstawiany w tabele rozpoczynajacy trase
         await db.execute(
@@ -24,11 +24,11 @@ async def start_trip(user_id: int, db: AsyncSession = Depends(get_db)):
         trip_id = trip_id_query.scalar()
 
         if trip_id is None:
-            raise ValueError("🚨 Nie udało się pobrać trip_id!")  # Obsługa błędu jeśli nie uda się pobrać trip_id debugging
+            raise ValueError("Nie udało się pobrać trip_id!")  # Obsługa błędu jeśli nie uda się pobrać trip_id debugging
 
         return {"trip_id": trip_id, "message": "Trasa rozpoczęta."}
     except Exception as e:
-        print(f"🚨 Błąd w start_trip: {e}")  # Log bledow
+        print(f" Błąd w start_trip: {e}")  # Log bledow
         return {"error": str(e)}
 
 @router.post("/update_location/{trip_id}")  # Endpoint do aktualizacji lokalizacji
@@ -72,7 +72,7 @@ async def trip_history(user_id: int, db: AsyncSession = Depends(get_db)):
     )
     trips = query.fetchall()
 
-    # Formatuje dane wyjściowe jako listę słowników
+    # Formatuje dane wyjściowe jako listę
     trip_data = [
         {"trip_id": trip[0], "start_time": trip[1], "end_time": trip[2], "total_distance_km": trip[3]}
         for trip in trips
