@@ -3,6 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text  
 from database.database import get_db  
 from backend.utils import calculate_distance  # Importujemy funkcję do obliczania dystansu
+from backend.routes.bt_points import award_bt_points
+
 
 # Router dla endpointow
 router = APIRouter()
@@ -61,7 +63,19 @@ async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
     )
     await db.commit()  # Zapis zmiany w bazie danych
 
+     # Pobiera ID użytkownika powiązanego z trasą
+    user_query = await db.execute(
+        text("SELECT user_id FROM trips WHERE trip_id = :trip_id"),
+        {"trip_id": trip_id}
+    )
+    user_id = user_query.scalar()
+
+    # Przyznaje punkty BT za zakończoną trasę
+    if user_id:
+        await award_bt_points(user_id, total_distance, db)
+
     return {"trip_id": trip_id, "total_distance_km": total_distance, "message": "Trasa zakończona!"}
+
 
 @router.get("/trip_history/{user_id}")  # Endpoint do pobrania historii tras użytkownika
 async def trip_history(user_id: int, db: AsyncSession = Depends(get_db)):
