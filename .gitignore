@@ -1,10 +1,56 @@
-backend/__pycache__/
-database/__pycache__/
+# --------------------
+# PYTHON BACKEND
+# --------------------
 __pycache__/
 *.pyc
-.env
-alembic/__pycache__/
+*.pyo
+*.pyd
+*.sqlite3
+*.db
+*.log
+*.env
+*.env.*
+.env.local
+
+# Alembic
 alembic/versions/*.pyc
-alembic/versions/
-frontend/node_modules/
-frontend/package-lock.json
+alembic/versions/__pycache__/
+
+# Virtual environments
+venv/
+backend/venv/
+
+# --------------------
+# NODE/REACT FRONTEND
+# --------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+frontend/.env
+
+# Vite cache
+.vite/
+dist/
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --------------------
+# DOCKER
+# --------------------
+*.pid
+*.sock
+
+# --------------------
+# TESTING
+# --------------------
+coverage/
+htmlcov/
+.cache/
+.pytest_cache/
+frontend/coverage/

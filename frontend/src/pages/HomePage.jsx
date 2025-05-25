@@ -9,7 +9,6 @@ const HomePage = () => {
 
   return (
     <div>
-      <h1>Hello from HomePage!</h1>
       <UserForm onUserAdded={triggerRefresh} />
       <UserList key={refresh} />
     </div>

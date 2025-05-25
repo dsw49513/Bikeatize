@@ -1,6 +1,10 @@
 import React from 'react';
 import HomePage from './pages/HomePage';
 
-const App = () => <HomePage />;
+console.log("🔥 App loaded!");
+
+const App = () => {
+  return <HomePage />;
+};
 
 export default App;
