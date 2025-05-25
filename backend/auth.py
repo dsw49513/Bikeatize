@@ -5,42 +5,28 @@ import jwt
 import datetime
 from dotenv import load_dotenv
 import os
-from pydantic import BaseModel
 from fastapi.security import OAuth2PasswordBearer
-from .utils import verify_password # Sprawdzanie hasła
+from passlib.context import CryptContext
+
 from database.database import SessionLocal
 from database.models import User
+from backend.schemas.user import UserCreate, Token
 
-# Automatyczne wykrywanie .env w katalogu repozytorium
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Pobiera katalog pliku
-ENV_PATH = os.path.join(BASE_DIR, "..", ".env")  # Wyszukuje .env w katalogu głównym repozytorium
+# ====== ENV ======
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(BASE_DIR, "..", ".env")
+load_dotenv(ENV_PATH)
 
-load_dotenv(ENV_PATH)  # Ładuje zmienne środowiskowe
-
-# Pobranie klucza JWT z .env
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise RuntimeError("Brak zmiennej SECRET_KEY w .env!")  # Zapobiega uruchomieniu aplikacji bez klucza
+    raise RuntimeError("Brak zmiennej SECRET_KEY w .env!")
 
-router = APIRouter()
+# ====== JWT + PASSWORDS ======
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
-# Model danych dla `/refresh`
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str
-
-# Model danych dla `/login`
-class LoginRequest(BaseModel):
-    username: str
-    password: str
-
-# Obsługa sesji bazy danych
-async def get_db():
-    async with SessionLocal() as session:
-        yield session
-
-# Funkcja generująca token JWT
 def create_jwt(username: str, refresh: bool = False):
     payload = {
         "sub": username,
@@ -48,97 +34,45 @@ def create_jwt(username: str, refresh: bool = False):
     }
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
-# Middleware do sprawdzania autoryzacji
-async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
-        username = payload.get("sub")
+# ====== DB SESSION ======
+async def get_db():
+    async with SessionLocal() as session:
+        yield session
 
-        if not username:
-            raise HTTPException(status_code=401, detail="Invalid token")
+async def get_user_by_username(username: str, db: AsyncSession):
+    result = await db.execute(select(User).where(User.name == username))
+    return result.scalars().first()
 
-        # Pobranie użytkownika z bazy
-        user = await db.execute(select(User).where(User.name == username))
-        user = user.scalars().first()
+# ====== ROUTER SETUP ======
+router = APIRouter()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
+# ====== AUTH ENDPOINTS ======
 
-        return user  # Zwrot pełnego obiektu użytkownika zamiast samego `name`
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-
-# Endpoint rejestracji użytkownika
 @router.post("/register")
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    # np.
-    db_user = await get_user_by_username(user.username, db)
+    db_user = await get_user_by_username(user.name, db)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
+    
     hashed_password = hash_password(user.password)
-    new_user = User(name=user.username, hashed_password=hashed_password, email="placeholder@example.com")
+    new_user = User(name=user.name, hashed_password=hashed_password, email=user.email)
     db.add(new_user)
     await db.commit()
     return {"message": "User created"}
 
-
-# Endpoint logowania użytkownika
 @router.post("/login", response_model=Token)
-async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
-    user = await db.execute(select(User).where(User.name == request.username))
+async def login(request: UserCreate, db: AsyncSession = Depends(get_db)):
+    user = await db.execute(select(User).where(User.name == request.name))
     user = user.scalars().first()
 
-    if not user or not verify_password(request.password, user.password):
+    if not user or not pwd_context.verify(request.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid username or password")
 
     access_token = create_jwt(user.name)
     refresh_token = create_jwt(user.name, refresh=True)
 
-    # Zapis refresh tokena w bazie
     user.refresh_token = refresh_token
     await db.commit()
 
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
-
-# Endpoint wylogowania użytkownika
-@router.post("/logout")
-async def logout(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
-    user.refresh_token = None  # Unieważniamy refresh token
-    await db.commit()
-    return {"message": "Logged out successfully"}
-
-# Endpoint odświeżania tokena
-@router.post("/refresh")
-async def refresh_token(request: RefreshTokenRequest, db: AsyncSession = Depends(get_db)):
-    refresh_token = request.refresh_token
-
-    # Sprawdzenie czy refresh token istnieje w bazie
-    user = await db.execute(select(User).where(User.refresh_token == refresh_token))
-    user = user.scalars().first()
-
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    # Weryfikacja refresh tokena
-    try:
-        payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=["HS256"])
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Refresh token expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid refresh token")
-
-    # Generowanie nowego access token i refresh token
-    new_access_token = create_jwt(user.name)
-    new_refresh_token = create_jwt(user.name, refresh=True)
-
-    # Aktualizacja refresh token w bazie, unieważniając poprzedni
-    user.refresh_token = new_refresh_token
-    await db.commit()
-
-    return {
-        "access_token": new_access_token,
-        "refresh_token": new_refresh_token,
-        "token_type": "bearer"
-    }

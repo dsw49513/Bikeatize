@@ -14,7 +14,8 @@ const RegisterPage = () => {
     const res = await fetch("http://localhost:8000/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, email, password }),
+      body: JSON.stringify({ name: username, email, password }),
+
     });
 
     const data = await res.json();
