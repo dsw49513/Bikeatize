@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware  # Middleware CORS dla frontendu
+from auth import router as auth_router
+
+
 
 # Import funkcji inicjalizującej bazę danych
 from database.database import init_db
@@ -29,7 +32,7 @@ async def startup_event():
 
 # Rejestracja routerów
 app.include_router(geolocation_router)  # Endpointy lokalizacji
-app.include_router(auth_router)  # Endpointy związane z autoryzacją
+app.include_router(auth_router, prefix="/api")  # Endpointy związane z autoryzacją
 app.include_router(distance_router)  # Endpointy do zliczania kilometrów
 app.include_router(trips_router)  # Endpointy do mierzenia trasy start-stop
 app.include_router(users_router, prefix="/api") #Endpoint do pobierania użytkowników

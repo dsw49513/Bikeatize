@@ -1,51 +1,93 @@
-# Instalacja Backendu
+# 🚲 Bikeatize
 
-# 1. Sklonuj repozytorium Bikeatize
+Aplikacja dla entuzjastów jazdy na rowerze, która łączy geolokalizację, analizę tras i motywacyjne systemy osiągnięć. Umożliwia użytkownikom:
 
-# 2. Stwórz wirtualne środowisko i zainstaluj zależności
+- śledzenie swoich tras,
+- zbieranie punktów,
+- rywalizację w rankingach.
 
-# 3. Skonfiguruj zmienne środowiskowe
-W głównym katologu stwórz plik .env <br>
-Edytuj .env dodajac wlasne wartości:<br>
+## ⚙️ Technologie
 
-<strong>Klucz do podpisywania JWT:</strong><br>
-ECRET_KEY=zmien_mnie_na_sekretny_klucz<br>
+- 🌐 Geolocation API
+- 🐍 FastAPI + Python
+- ⚛️ ReactJS (wcześniej Angular/FastUI)
+- 📱 Progressive Web App (PWA)
+- 🔐 JWT Auth
+- 🐬 MySQL (obecnie, wcześniej PostgreSQL)
+- 🧵 SQLAlchemy (async ORM, `asyncmy`)
 
-<strong>Połączenie z bazą danych (zastąp danymi swojego MySQL)</strong><br>
-DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/bikeatize_db
+## 📦 Instalacja lokalna
 
-# 4. Migracja bazy danych (Alembic)
+### 1. Baza danych (MySQL przez Docker)
+```bash
+docker run --name biketize-db -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=biketize_db -p 3306:3306 -d mysql:8
+```
 
-Zainstaluj Alembic i uruchom migracje:<br>
-**bash:** alembic upgrade head &nbsp; # Tworzy tabelę w bazie danych
+### 2. Backend (FastAPI)
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r ../requirements.txt
+```
 
-# 5. Uruchom aplikację
+Upewnij się, że masz plik `.env` w katalogu głównym projektu:
+```env
+DATABASE_URL=mysql+asyncmy://root:secret@localhost:3306/biketize_db
+SECRET_KEY=supersekretnyklucz123
+```
 
-uvicorn backend.main:app --reload <br>
-API powinno działać na: http://127.0.0.1:8000 (SwaggerUI)
+Uruchom serwer:
+```bash
+cd ..
+PYTHONPATH=. uvicorn backend.main:app --reload
+```
 
-# 6. Lista Endpointów API:
-**Autoryzacja użytkownika:**
-<ul>
-    <li>POST /login > Logowanie użytkownika</li>
-    <li>POST /register > Rejestracja nowego użytkownika</li>
-    <li>POST /logout > Wylogowanie</li>
-    <li>POST /refresh > Odświeżanie tokena JWT</li>
-</ul>
+### 3. Frontend (React + Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-**Obsługa tras rowerowych:**
+Bikeatize/  
+├─ .gitignore  
+├─ alembic.ini  
+├─ README.md           # opis projektu, instrukcje migration  
+├─ requirements.txt    # zależności ogólne  
+├─ alembic/            # skrypty migracji bazy danych  
+│  ├─ env.py  
+│  ├─ README  
+│  └─ script.py.mako  
+├─ backend/            # serwer FastAPI  
+│  ├─ .dockerignore  
+│  ├─ .gitignore  
+│  ├─ README.md        # instrukcje uruchomienia backendu  
+│  ├─ requirements.txt # zależności Pythona  
+│  ├─ main.py          # instancja FastAPI + routery  
+│  ├─ auth.py          # obsługa JWT, logowania/rejestracji  
+│  ├─ models.py        # definicje ORM (SQLAlchemy async)  
+│  ├─ schemas.py       # Pydantic-owe modele danych  
+│  ├─ utils.py         # funkcje pomocnicze (np. haszowanie haseł)  
+│  ├─ reset_users.py   # skrypt testowy do zerowania danych  
+│  └─ core/security.py # konfiguracja bezpieczeństwa, klucze JWT  
+└─ frontend/           # aplikacja React + Vite (PWA)  
+   ├─ package.json  
+   ├─ vite.config.js  
+   ├─ public/         # manifest PWA, ikony  
+   │  ├─ manifest.json  
+   │  └─ icon-*.png  
+   └─ src/  
+      ├─ main.jsx      # punkt wejścia, ReactDOM.render  
+      ├─ App.jsx       # routowanie do stron  
+      ├─ api/          # wywołania do backendu (authApi.js, userApi.js)  
+      ├─ components/   # formularze i listy (LoginForm, RegisterForm, UserList…)  
+      └─ pages/        # strony: HomePage, LoginPage, RegisterPage  
 
-<ul>
-    <li>POST /start_trip/{user_id} → Rozpoczęcie trasy</li>
-    <li>POST /update_location/{trip_id}?latitude=XX&longitude=XX → Aktualizacja lokalizacji</li>
-    <li>POST /stop_trip/{trip_id} → Zakończenie trasy</li>
-    <li>GET /trip_history/{user_id} → Historia tras</li>
-</ul>
 
-# 7. Uwagi
+## 🔁 API
 
-- Jeśli masz problem z .env, upewnij się, że znajduje się w katalogu głównym repo.
-- Jeśli używasz Pythona 3.12+ i masz problem z asyncmy, możesz użyć aiomysql.
-
-
-
+| Endpoint       | Metoda | Opis                        |
+|----------------|--------|-----------------------------|
+| `/api/users`   | GET    | Pobiera listę użytkowników |
+| `/api/users`   | POST   | Dodaje nowego użytkownika  |

@@ -70,9 +70,22 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+# Endpoint rejestracji użytkownika
+@router.post("/register")
+async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
+    # np.
+    db_user = await get_user_by_username(user.username, db)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Username already registered")
+    hashed_password = hash_password(user.password)
+    new_user = User(name=user.username, hashed_password=hashed_password, email="placeholder@example.com")
+    db.add(new_user)
+    await db.commit()
+    return {"message": "User created"}
+
 
 # Endpoint logowania użytkownika
-@router.post("/login")
+@router.post("/login", response_model=Token)
 async def login(request: LoginRequest, db: AsyncSession = Depends(get_db)):
     user = await db.execute(select(User).where(User.name == request.username))
     user = user.scalars().first()
