@@ -1,41 +1,55 @@
-const API_URL = "http://127.0.0.1:8000"; 
+const BASE_URL = '/api/users';
 
+// ✅ CREATE - dodaj użytkownika
+export async function createUser(user) {
+  const res = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(user),
+  });
 
-export const createUser = async (userData) => {
-  try {
-    const response = await fetch(`${API_URL}/users`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(userData),
-    });
-
-    if (!response.ok) {
-      throw new Error("Nie udało się utworzyć użytkownika.");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Błąd podczas tworzenia użytkownika:", error);
-    throw error;
+  if (!res.ok) {
+    throw new Error('Błąd dodawania użytkownika');
   }
-};
 
+  return await res.json();
+}
 
-export const getUsers = async () => {
-  try {
-    const response = await fetch(`${API_URL}/users`, {
-      method: "GET",
-    });
+// ✅ READ - pobierz użytkowników
+export async function getUsers() {
+  const res = await fetch(BASE_URL);
 
-    if (!response.ok) {
-      throw new Error("Nie udało się pobrać listy użytkowników.");
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Błąd podczas pobierania użytkowników:", error);
-    throw error;
+  if (!res.ok) {
+    throw new Error('Błąd pobierania użytkowników');
   }
-};
+
+  return await res.json();
+}
+
+// ✅ UPDATE - aktualizuj użytkownika
+export async function updateUser(id, updatedUser) {
+  const res = await fetch(`${BASE_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updatedUser),
+  });
+
+  if (!res.ok) {
+    throw new Error('Błąd aktualizacji użytkownika');
+  }
+
+  return await res.json();
+}
+
+// ✅ DELETE - usuń użytkownika
+export async function deleteUser(id) {
+  const res = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    throw new Error('Błąd usuwania użytkownika');
+  }
+
+  return await res.json();
+}

@@ -20,7 +20,7 @@ async def award_bt_points(user_id: int, distance: float, db: AsyncSession = Depe
     points = int(distance * 10)  # 10 pkt za każdy km
 
     if distance < 1.0:
-        print(f"Dystans zbyt mały ({distance} km), nie przyznano BT Points!")
+        print(f"Dystans zbyt mały ({distance} km), nie przyznano BT Points")
         return {"message": "Dystans zbyt mały, nie przyznano punktów"}
 
     try:
