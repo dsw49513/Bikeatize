@@ -1,16 +1,15 @@
-import React, { useState } from 'react';
-import UserForm from '../components/UserForm';
-import UserList from '../components/UserList';
+// frontend/src/pages/HomePage.jsx
+
+import React from "react";
+import { Link } from "react-router-dom";
 
 const HomePage = () => {
-  const [refresh, setRefresh] = useState(false);
-
-  const triggerRefresh = () => setRefresh(!refresh);
-
   return (
     <div>
-      <UserForm onUserAdded={triggerRefresh} />
-      <UserList key={refresh} />
+      <h1>Strona główna</h1>
+      <nav>
+        <Link to="/login">Logowanie</Link> | <Link to="/register">Rejestracja</Link>
+      </nav>
     </div>
   );
 };
