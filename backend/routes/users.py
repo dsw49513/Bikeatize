@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from database.database import get_session
+from database.database import get_db
 from database.models import User
 from pydantic import BaseModel
 
@@ -22,7 +22,7 @@ class UserResponse(BaseModel):
 
 # CREATE - dodanie użytkownika
 @router.post("/users", response_model=UserResponse)
-async def create_user(user: UserCreate, session: AsyncSession = Depends(get_session)):
+async def create_user(user: UserCreate, session: AsyncSession = Depends(get_db)):
     db_user = User(name=user.name, email=user.email)
     session.add(db_user)
     await session.commit()
@@ -31,14 +31,14 @@ async def create_user(user: UserCreate, session: AsyncSession = Depends(get_sess
 
 # READ - pobranie wszystkich użytkowników
 @router.get("/users", response_model=list[UserResponse])
-async def get_users(session: AsyncSession = Depends(get_session)):
+async def get_users(session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(User))
     users = result.scalars().all()
     return users
 
 # UPDATE - aktualizacja użytkownika
 @router.put("/users/{user_id}", response_model=UserResponse)
-async def update_user(user_id: int, updated_user: UserCreate, session: AsyncSession = Depends(get_session)):
+async def update_user(user_id: int, updated_user: UserCreate, session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -50,7 +50,7 @@ async def update_user(user_id: int, updated_user: UserCreate, session: AsyncSess
 
 # DELETE - usunięcie użytkownika
 @router.delete("/users/{user_id}")
-async def delete_user(user_id: int, session: AsyncSession = Depends(get_session)):
+async def delete_user(user_id: int, session: AsyncSession = Depends(get_db)):
     result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:

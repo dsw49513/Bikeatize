@@ -2,11 +2,13 @@
 from fastapi import APIRouter
 from backend.routes.geolocation import router as geolocation_router
 from backend.routes.distance import router as distance_router  
+from routes import auth
 
 # Tworzenie głównego routera
 router = APIRouter()
 
 # Rejestracja poszczególnych routerów
+app.include_router(auth.router, prefix="/auth", tags=["auth"]) # Router autoryzacji
 router.include_router(geolocation_router)
 router.include_router(distance_router)  # API do liczenia kilometrów
 
