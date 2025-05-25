@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, relationship
 from datetime import datetime
+from sqlalchemy.sql import func
 
 # Tworzenie klasy bazowej dla modeli SQLAlchemy
 Base = declarative_base()
@@ -56,7 +57,7 @@ class TripLocation(Base):
 
     trip = relationship("Trip", back_populates="locations")  # Powiązanie punktu trasy z trasą
 
-# Model punktów gratyfikacji BT
+# Model punktów za przejechane trasy BT
 class BTPoints(Base):
     __tablename__ = "bt_points"
 
@@ -64,6 +65,6 @@ class BTPoints(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # Powiązanie punktów z użytkownikiem
     points = Column(Integer, default=0)  # Liczba zdobytych punktów BT
     achievement_name = Column(String(255))  # Nazwa osiągnięcia
-    achieved_at = Column(DateTime, default=datetime.utcnow, nullable=False)  # Czas zdobycia osiągnięcia
+    achieved_at = Column(DateTime, server_default=func.now(), nullable=False)  # Czas zdobycia osiągnięcia
 
     user = relationship("User", back_populates="bt_points")  # Powiązanie punktów z użytkownikiem
