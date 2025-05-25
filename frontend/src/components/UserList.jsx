@@ -6,28 +6,37 @@ const UserList = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-  console.log("🔥 Pobieram użytkowników...");
-  getUsers()
-    .then((res) => {
-      console.log("✅ Odpowiedź API:", res.data);
-      setUsers(Array.isArray(res) ? res : []); // ✅ poprawka
-    })
-    .catch((err) => {
-      console.error("❌ Błąd API:", err);
-      setError("Błąd pobierania użytkowników.");
-    });
-}, []);
+    getUsers()
+      .then((res) => {
+        if (res?.data && Array.isArray(res.data)) {
+          setUsers(res.data);
+        } else {
+          throw new Error('Nieprawidłowy format danych z backendu');
+        }
+      })
+      .catch((err) => {
+        console.error('Błąd pobierania danych:', err);
+        setError('Wystąpił problem z pobieraniem użytkowników.');
+      });
+  }, []);
 
-
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
+  if (error) {
+    return <div style={{ color: 'red' }}>{error}</div>;
+  }
 
   return (
     <div>
       <h2>Lista użytkowników</h2>
       <ul>
-        {users.map((user) => (
-          <li key={user._id}>{user.name} – {user.email}</li>
-        ))}
+        {users.length === 0 ? (
+          <li>Brak użytkowników.</li>
+        ) : (
+          users.map((user) => (
+            <li key={user._id}>
+              {user.name} – {user.email}
+            </li>
+          ))
+        )}
       </ul>
     </div>
   );
