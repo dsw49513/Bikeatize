@@ -6,6 +6,8 @@ from models.user import User
 from schemas.user import UserCreate, UserLogin, Token
 from core.security import get_password_hash, verify_password, create_access_token
 from fastapi.security import OAuth2PasswordRequestForm
+from database.models import User
+
 
 router = APIRouter()
 

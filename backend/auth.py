@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 import os
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
-
+from fastapi import Form
 from database.database import SessionLocal
 from database.models import User
-from backend.schemas.user import UserCreate, Token
+from backend.schemas.user import UserCreate, UserLogin, Token
 
 # ====== ENV ======
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,8 +39,8 @@ async def get_db():
     async with SessionLocal() as session:
         yield session
 
-async def get_user_by_username(username: str, db: AsyncSession):
-    result = await db.execute(select(User).where(User.name == username))
+async def get_user_by_email(email: str, db: AsyncSession):
+    result = await db.execute(select(User).where(User.email == email))
     return result.scalars().first()
 
 # ====== ROUTER SETUP ======
@@ -54,7 +54,11 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
     db_user = await get_user_by_username(user.name, db)
     if db_user:
         raise HTTPException(status_code=400, detail="Username already registered")
-    
+
+    db_email = await get_user_by_email(user.email, db)
+    if db_email:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
     hashed_password = hash_password(user.password)
     new_user = User(name=user.name, hashed_password=hashed_password, email=user.email)
     db.add(new_user)
@@ -62,12 +66,12 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
     return {"message": "User created"}
 
 @router.post("/login", response_model=Token)
-async def login(request: UserCreate, db: AsyncSession = Depends(get_db)):
-    user = await db.execute(select(User).where(User.name == request.name))
+async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
+    user = await db.execute(select(User).where(User.email == request.email))
     user = user.scalars().first()
 
     if not user or not pwd_context.verify(request.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid username or password")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
 
     access_token = create_jwt(user.name)
     refresh_token = create_jwt(user.name, refresh=True)

@@ -12,7 +12,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True) # Unikalny identyfikator użytkownika
     name = Column(String(50), nullable=False)# Imię użytkownika max 50 znaków
-    password = Column(String(255), nullable=False) # Hasło użytkownika (hashowane)
+    email = Column(String(100), nullable=False, unique=True, index=True)
+    hashed_password = Column(String(255), nullable=False) # Hasło użytkownika (hashowane)
     refresh_token = Column(String(512), nullable=True)  # refresh token do autoryzacji
 
     locations = relationship("Location", back_populates="user") # użytkownik moze miec  wiele lokalizacji

@@ -23,10 +23,10 @@ origins = [
 # Otwarcie dostępu dla frontendu
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,            # Dozwolone originy
-    allow_credentials=True,           # Zezwolenie na przesyłanie ciasteczek i nagłówków uwierzytelniających
-    allow_methods=["*"],              # Dozwolone metody HTTP
-    allow_headers=["*"],              # Dozwolone nagłówki
+    allow_origins=origins, # Dozwolone originy
+    allow_credentials=True,                  # Zezwolenie na przesyłanie ciasteczek i nagłówków uwierzytelniających
+    allow_methods=["*"],                     # Dozwolone metody HTTP
+    allow_headers=["*"],                     # Dozwolone nagłówki
 )
 
 # Wywołanie inicjalizacji bazy danych przy starcie serwera
