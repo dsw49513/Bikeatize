@@ -1,13 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 const Dashboard = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
   const [points, setPoints] = useState(null);
   const [distance, setDistance] = useState(null);
+  const navigate = useNavigate();
+
+  const { token, isAuthenticated, logout } = useContext(AuthContext);
 
   useEffect(() => {
-    // Pobranie lokalizacji użytkownika
+    if (!isAuthenticated || !token) {
+      navigate("/login");
+      return;
+    }
+
+    // 📍 Lokalizacja
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
@@ -21,12 +31,26 @@ const Dashboard = () => {
       }
     );
 
-    // TODO: pobierz punkty i dystans z backendu po zalogowaniu
-    // fetchUserData();
-  }, []);
+    // 🎯 Fetch punktów
+    fetch("http://localhost:8000/bt_points/me", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        setPoints(data.points); // zależnie od struktury
+        setDistance(data.total_distance);
+      })
+      .catch((err) => {
+        console.error("Błąd pobierania punktów:", err);
+      });
+  }, [isAuthenticated, token, navigate]);
 
   return (
     <div style={{ padding: "2rem" }}>
+      <button onClick={logout}>Wyloguj się</button>
+
       <h2>🎯 Dashboard użytkownika</h2>
 
       <section>
@@ -44,19 +68,12 @@ const Dashboard = () => {
 
       <section>
         <h3>🏅 Punkty / Nagrody:</h3>
-        <p>{points !== null ? `${points} pkt` : "Brak danych"}</p>
+        <p>{points !== null ? `${points} pkt` : "Ładowanie..."}</p>
       </section>
 
       <section>
         <h3>🚴 Dystans całkowity:</h3>
-        <p>{distance !== null ? `${distance} km` : "Brak danych"}</p>
-      </section>
-
-      <section style={{ marginTop: "2rem" }}>
-        <h3>🗺️ Mapa (wkrótce)</h3>
-        <div style={{ width: "100%", height: "300px", backgroundColor: "#eee", textAlign: "center", lineHeight: "300px" }}>
-          [tutaj będzie mapa]
-        </div>
+        <p>{distance !== null ? `${distance} km` : "Ładowanie..."}</p>
       </section>
     </div>
   );

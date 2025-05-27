@@ -1,10 +1,12 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ dodano
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext"; // ✅ import
 
 const LoginPage = () => {
   const [email, setEmail] = useState(""); 
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // ✅ użycie hooka do przekierowań
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // ✅ użycie kontekstu
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,8 +20,8 @@ const LoginPage = () => {
 
       if (res.ok) {
         const data = await res.json();
-        alert("Zalogowano! Token: " + data.access_token);
-        navigate("/dashboard"); // ✅ przekierowanie po zalogowaniu
+        login(data.access_token); // ✅ ustaw token przez kontekst
+        navigate("/dashboard");
       } else {
         alert("Błąd logowania");
       }
