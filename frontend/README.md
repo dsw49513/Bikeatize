@@ -1,65 +1,103 @@
-# 🚴 Bikeatize – Backend (FastAPI + MySQL)
+🚴‍♂️ Bikeatize
+Bikeatize to aplikacja webowa dla entuzjastów jazdy na rowerze. Pozwala:
 
-Backend aplikacji do śledzenia aktywności rowerowej użytkowników.
+śledzić trasy i lokalizację użytkownika,
 
-## 🔧 Wymagania
+gromadzić punkty za pokonany dystans,
 
-- Python 3.10+
-- MySQL lub MariaDB
-- `pip` / `poetry` (do instalacji zależności)
+zarządzać użytkownikami,
 
-## 🚀 Instalacja
+wizualizować pozycję na mapie,
 
-1. **Sklonuj repozytorium**
-```bash
-git clone https://github.com/TwojeRepo/Bikeatize.git
-cd Bikeatize/backend
-```
+analizować historię aktywności.
 
-2. **Stwórz wirtualne środowisko i zainstaluj zależności**
-```bash
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-```
+🗂️ Struktura projektu
+bash
+Copy
+Edit
+Bikeatize/
+├── backend/                      # Backend FastAPI + SQLAlchemy
+│   ├── auth.py                  # Logika JWT, logowanie, rejestracja
+│   ├── main.py                  # Główna aplikacja FastAPI
+│   ├── database/                # Połączenie z bazą danych
+│   │   ├── database.py
+│   │   ├── models.py
+│   └── routes/                  # Endpointy REST API
+│       ├── bt_points.py         # System punktów
+│       ├── distance.py          # Obliczanie dystansu (Haversine)
+│       ├── geolocation.py       # Zapis i odczyt lokalizacji
+│       ├── trips.py             # Start/Stop trasy, zapis punktów
+│       └── users.py             # CRUD użytkowników
+├── frontend/                    # Frontend React + Vite
+│   ├── src/
+│   │   ├── context/             # AuthContext – globalna autoryzacja
+│   │   ├── pages/               # Widoki aplikacji
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── RegisterPage.jsx
+│   │   │   ├── Dashboard.jsx    # Mapa, punkty, dystans
+│   │   │   └── HomePage.jsx
+│   ├── public/
+│   └── package.json             # Zależności React
+├── .env                         # Sekrety backendu (JWT, DB)
+├── requirements.txt             # Zależności backendu (FastAPI, etc.)
+└── README.md
+🔧 Wymagania
+Python 3.10+
 
-3. **Utwórz plik `.env`**
-```env
-SECRET_KEY=twoj_super_tajny_klucz
-DATABASE_URL=mysql+asyncmy://user:password@localhost:3306/bikeatize_db
-```
+Node.js (frontend)
 
-4. **Wykonaj migrację bazy danych**
-```bash
-alembic upgrade head
-```
+MySQL 8 (baza danych)
 
-5. **Uruchom backend**
-```bash
-uvicorn backend.main:app --reload
-```
+Docker (opcjonalnie do uruchomienia bazy)
 
-Aplikacja będzie dostępna na: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+⚙️ Uruchomienie projektu
+1. Uruchomienie bazy danych (Docker):
+bash
+Copy
+Edit
+docker run --name biketize-db \
+  -e MYSQL_ROOT_PASSWORD=secret \
+  -e MYSQL_DATABASE=bikeatize \
+  -p 3306:3306 \
+  -d mysql:8
+2. Backend (FastAPI):
+bash
+Copy
+Edit
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r ../requirements.txt
+uvicorn main:app --reload
+3. Frontend (React):
+bash
+Copy
+Edit
+cd frontend
+npm install
+npm run dev
+🔐 Backend – najważniejsze endpointy
+Metoda	Endpoint	Opis
+POST	/api/register	Rejestracja użytkownika
+POST	/api/login	Logowanie, JWT w odpowiedzi
+GET	/bt_points/me	Pobranie punktów i dystansu (JWT)
+POST	/start_trip/{user_id}	Rozpoczęcie nowej trasy
+POST	/update_location/{trip_id}	Zapisanie lokalizacji trasy
+POST	/stop_trip/{trip_id}	Zakończenie trasy i przyznanie punktów
+GET	/trip_history/{user_id}	Historia tras
 
----
+💡 Frontend – opis działania
+LoginPage – loguje użytkownika, zapisuje token do AuthContext, przekierowuje do /dashboard
 
-## 📚 API – Główne endpointy
+RegisterPage – tworzy konto i przekierowuje do logowania
 
-### 🔐 Autoryzacja
-- `POST /login` – logowanie
-- `POST /register` – rejestracja
-- `POST /logout` – wylogowanie
-- `POST /refresh` – odświeżenie tokena
+Dashboard – pobiera punkty i dystans z backendu, wyświetla mapę z lokalizacją użytkownika
 
-### 📍 Trasy rowerowe
-- `POST /start_trip/{user_id}` – rozpoczęcie trasy
-- `POST /update_location/{trip_id}?latitude=X&longitude=Y` – aktualizacja lokalizacji
-- `POST /stop_trip/{trip_id}` – zakończenie trasy
-- `GET /trip_history/{user_id}` – historia tras
+HomePage – strona główna, linki do logowania/rejestracji
 
----
+🗺️ Mapa i lokalizacja
+Używamy:
 
-## 🧠 Uwagi
+react-leaflet
 
-- Plik `.env` musi znajdować się w katalogu `backend/`.
-- Jeśli `asyncmy` nie działa na Pythonie 3.12+, możesz użyć `aiomysql`.
+leaflet
