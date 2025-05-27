@@ -1,9 +1,27 @@
+from database.models import Base
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from dotenv import load_dotenv
+import os
+import sys
+
+
+# Dodaj katalog główny projektu do sys.path
+sys.path.append(os.path.abspath(os.path.join(
+    os.path.dirname(__file__), "..", "..")))
+
+# Ładowanie zmiennych środowiskowych z pliku .env
+load_dotenv()
+
+# Pobierz URL bazy danych z pliku .env
+DATABASE_URL = os.getenv("ALEMBIC_URL")
+if not DATABASE_URL:
+    raise RuntimeError("Brak zmiennej ALEMBIC_URL w pliku .env!")
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -18,7 +36,6 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-from database.models import Base
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
@@ -39,7 +56,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = DATABASE_URL
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -62,6 +79,7 @@ def run_migrations_online() -> None:
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        url=DATABASE_URL,
     )
 
     with connectable.connect() as connection:
