@@ -27,8 +27,10 @@ async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
     await db.commit()
     await db.refresh(new_user)
 
-    access_token = create_access_token(data={"sub": str(new_user.id)})
+    access_token = create_access_token(data={"sub": new_user.email, "user_id": new_user.id})
     return {"access_token": access_token, "token_type": "bearer"}
+
+
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
@@ -40,5 +42,5 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Nieprawidłowe dane logowania")
 
-    access_token = create_access_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data={"sub": user.email, "user_id": user.id})
     return {"access_token": access_token, "token_type": "bearer"}

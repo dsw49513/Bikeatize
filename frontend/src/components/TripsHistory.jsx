@@ -1,8 +1,7 @@
-// 📄 /frontend/src/components/TripsHistory.jsx
-
 import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import jwt_decode from "jwt-decode";
+import { jwtDecode } from "jwt-decode";
+
 
 const TripsHistory = () => {
   const { token } = useContext(AuthContext); // Pobieramy token JWT z kontekstu uwierzytelnienia
@@ -13,14 +12,16 @@ const TripsHistory = () => {
     if (!token) return; // Jeżeli nie mamy tokenu, nie wykonujemy zapytania
 
     // Dekodowanie tokenu JWT w celu uzyskania user_id
-    const decoded = jwt_decode(token);
-    const userId = decoded.sub; // Zakładamy, że backend zapisuje user_id jako "sub"
+    const decoded = jwtDecode(token);
+    console.log("Zdekodowany token JWT:", decoded);
+    const userId = decoded.user_id; // Zakładamy, że backend zapisuje user_id jako "sub"
 
     // Pobieranie historii tras z backendu
     fetch(`http://localhost:8000/trip_history/${userId}`)
       .then((res) => res.json())
       .then((data) => {
-        setTrips(data.trips); // Zapisanie danych tras w stanie
+        console.log("Odpowiedź z backendu:", data);
+        setTrips(data?.trips || []); // Zapisanie danych tras w stanie
         setLoading(false); // Wyłączenie trybu ładowania
       })
       .catch((err) => {

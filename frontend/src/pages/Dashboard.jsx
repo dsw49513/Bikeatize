@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import jwt_decode from "jwt-decode";
 import TripsHistory from "../components/TripsHistory";
 
 const Dashboard = () => {
@@ -108,9 +107,5 @@ const Dashboard = () => {
     </div>
   );
 };
-
-//Token JWT do
-const decoded = jwt_decode(token);
-const userId = decoded.sub;
 
 export default Dashboard;
