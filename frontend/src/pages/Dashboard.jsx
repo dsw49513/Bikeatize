@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L from "leaflet";
 
 const Dashboard = () => {
   const [location, setLocation] = useState(null);
@@ -8,7 +10,6 @@ const Dashboard = () => {
   const [points, setPoints] = useState(null);
   const [distance, setDistance] = useState(null);
   const navigate = useNavigate();
-
   const { token, isAuthenticated, logout } = useContext(AuthContext);
 
   useEffect(() => {
@@ -17,7 +18,7 @@ const Dashboard = () => {
       return;
     }
 
-    // 📍 Lokalizacja
+    // 📍 Lokalizacja przeglądarki
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLocation({
@@ -31,7 +32,7 @@ const Dashboard = () => {
       }
     );
 
-    // 🎯 Fetch punktów
+    // 🔐 Fetch punktów z backendu
     fetch("http://localhost:8000/bt_points/me", {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -39,7 +40,7 @@ const Dashboard = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        setPoints(data.points); // zależnie od struktury
+        setPoints(data.points);
         setDistance(data.total_distance);
       })
       .catch((err) => {
@@ -47,10 +48,17 @@ const Dashboard = () => {
       });
   }, [isAuthenticated, token, navigate]);
 
+  // 🧭 Marker domyślny (ikonka lokalizacji)
+  const markerIcon = new L.Icon({
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+  });
+
   return (
     <div style={{ padding: "2rem" }}>
       <button onClick={logout}>Wyloguj się</button>
-
       <h2>🎯 Dashboard użytkownika</h2>
 
       <section>
@@ -65,6 +73,25 @@ const Dashboard = () => {
           <p>Trwa pobieranie lokalizacji...</p>
         )}
       </section>
+
+      {location && (
+        <section>
+          <h3>🗺️ Mapa</h3>
+          <MapContainer
+            center={[location.lat, location.lng]}
+            zoom={13}
+            style={{ height: "300px", width: "100%" }}
+          >
+            <TileLayer
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              attribution="&copy; OpenStreetMap"
+            />
+            <Marker position={[location.lat, location.lng]} icon={markerIcon}>
+              <Popup>Tu jesteś!</Popup>
+            </Marker>
+          </MapContainer>
+        </section>
+      )}
 
       <section>
         <h3>🏅 Punkty / Nagrody:</h3>
