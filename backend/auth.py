@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
 import jwt
 import datetime
 from dotenv import load_dotenv
 import os
-from fastapi.security import OAuth2PasswordBearer
-from passlib.context import CryptContext
-from fastapi import Form
+
 from database.database import SessionLocal
 from database.models import User
 from backend.schemas.user import UserCreate, UserLogin, Token
@@ -59,9 +59,13 @@ async def get_user_by_email(email: str, db: AsyncSession):
     result = await db.execute(select(User).where(User.email == email))
     return result.scalars().first()
 
+async def get_user_by_username(username: str, db: AsyncSession):
+    result = await db.execute(select(User).where(User.name == username))
+    return result.scalars().first()
+
 # ====== ROUTER SETUP ======
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/login")
 
 # ====== AUTH ENDPOINTS ======
 
@@ -145,3 +149,24 @@ async def logout(refresh_token: str, db: AsyncSession = Depends(get_db)):
     await db.commit()
 
     return {"message": "Wylogowano"}
+
+# ====== SECURED DEPENDENCY ======
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        username: str = payload.get("sub")
+        if username is None:
+            raise HTTPException(status_code=401, detail="Nieprawidłowy token")
+    except jwt.PyJWTError:
+        raise HTTPException(status_code=401, detail="Nieprawidłowy token")
+
+    result = await db.execute(select(User).where(User.name == username))
+    user = result.scalars().first()
+    if user is None:
+        raise HTTPException(status_code=401, detail="Użytkownik nie istnieje")
+
+    return user
