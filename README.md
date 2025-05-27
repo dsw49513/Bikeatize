@@ -41,6 +41,10 @@ Upewnij się, że masz plik `.env` w katalogu głównym projektu:
 
 ```env
 DATABASE_URL=postgresql+asyncpg://postgres:secret@localhost:5432/postgres
+
+DATABASE_URL=mysql+aiomysql://user:haslo@localhost:3306/bikeatize_db
+ALEMBIC_URL=mysql+pymysql://user:haslo@localhost:3306/bikeatize_db
+
 SECRET_KEY=supersekretnyklucz123
 ```
 
