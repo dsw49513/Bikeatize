@@ -24,8 +24,10 @@ if not SECRET_KEY:
 # ====== JWT + PASSWORDS ======
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
+
 def hash_password(password: str) -> str:
     return pwd_context.hash(password)
+
 
 def create_jwt(username: str, refresh: bool = False):
     payload = {
@@ -35,9 +37,12 @@ def create_jwt(username: str, refresh: bool = False):
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 # ====== DB SESSION ======
+
+
 async def get_db():
     async with SessionLocal() as session:
         yield session
+
 
 async def get_user_by_email(email: str, db: AsyncSession):
     result = await db.execute(select(User).where(User.email == email))
@@ -49,21 +54,25 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 # ====== AUTH ENDPOINTS ======
 
+
 @router.post("/register")
 async def register(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    db_user = await get_user_by_username(user.name, db)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Username already registered")
+    # db_user = await get_user_by_username(user.name, db)
+    # if db_user:
+    #     raise HTTPException(status_code=400, detail="Username already registered")
+    # nie mamy unikalnych imion, mogą się powtarzać
 
     db_email = await get_user_by_email(user.email, db)
     if db_email:
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed_password = hash_password(user.password)
-    new_user = User(name=user.name, hashed_password=hashed_password, email=user.email)
+    new_user = User(
+        name=user.name, hashed_password=hashed_password, email=user.email)
     db.add(new_user)
     await db.commit()
     return {"message": "User created"}
+
 
 @router.post("/login", response_model=Token)
 async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
@@ -71,7 +80,8 @@ async def login(request: UserLogin, db: AsyncSession = Depends(get_db)):
     user = user.scalars().first()
 
     if not user or not pwd_context.verify(request.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+        raise HTTPException(
+            status_code=401, detail="Invalid email or password")
 
     access_token = create_jwt(user.name)
     refresh_token = create_jwt(user.name, refresh=True)
