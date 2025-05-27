@@ -4,6 +4,7 @@ from sqlalchemy.future import select
 from database.database import get_db as get_session
 from database.models import User
 from pydantic import BaseModel
+from backend.utils import hash_password
 
 router = APIRouter()
 
@@ -13,6 +14,7 @@ router = APIRouter()
 class UserCreate(BaseModel):
     name: str
     email: str
+    password: str
 
 
 class UserResponse(BaseModel):
@@ -26,13 +28,29 @@ class UserResponse(BaseModel):
 # CREATE - dodanie użytkownika
 
 
+# @router.post("/users", response_model=UserResponse)
+# async def create_user(user: UserCreate, session: AsyncSession = Depends(get_session)):
+#     db_user = User(name=user.name, email=user.email)
+#     session.add(db_user)
+#     await session.commit()
+#     await session.refresh(db_user)
+#     return db_user
+
 @router.post("/users", response_model=UserResponse)
 async def create_user(user: UserCreate, session: AsyncSession = Depends(get_session)):
-    db_user = User(name=user.name, email=user.email)
-    session.add(db_user)
+    result = await session.execute(select(User).where(User.email == user.email))
+    existing_user = result.scalars().first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email już istnieje")
+
+    hashed_password = hash_password(user.password)
+
+    new_user = User(name=user.name, email=user.email, password=hashed_password)
+    session.add(new_user)
     await session.commit()
-    await session.refresh(db_user)
-    return db_user
+    await session.refresh(new_user)
+
+    return new_user
 
 # READ - pobranie wszystkich użytkowników
 
