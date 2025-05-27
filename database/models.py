@@ -15,7 +15,8 @@ class User(Base):
     email = Column(String(100), nullable=False, unique=True, index=True)
     hashed_password = Column(String(255), nullable=False) # Hasło użytkownika (hashowane)
     refresh_token = Column(String(512), nullable=True)  # refresh token do autoryzacji
-
+    points = Column(Integer, default=0)
+    total_distance = Column(Float, default=0.0)
     locations = relationship("Location", back_populates="user") # użytkownik moze miec  wiele lokalizacji
 
 # Model zapisu lokalizacji

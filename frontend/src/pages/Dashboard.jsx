@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
+import jwt_decode from "jwt-decode";
+import TripsHistory from "../components/TripsHistory";
 
 const Dashboard = () => {
   const [location, setLocation] = useState(null);
@@ -101,9 +103,14 @@ const Dashboard = () => {
       <section>
         <h3>🚴 Dystans całkowity:</h3>
         <p>{distance !== null ? `${distance} km` : "Ładowanie..."}</p>
+        <TripsHistory />
       </section>
     </div>
   );
 };
+
+//Token JWT do
+const decoded = jwt_decode(token);
+const userId = decoded.sub;
 
 export default Dashboard;
