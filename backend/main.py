@@ -24,8 +24,11 @@ origins = [
 # Otwarcie dostępu dla frontendu
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins, # Dozwolone originy
-    allow_credentials=True,                  # Zezwolenie na przesyłanie ciasteczek i nagłówków uwierzytelniających
+    # TYLKO DO TESTOWANIA
+    allow_origins=["*"],
+    # allow_origins=origins, # Dozwolone originy
+    # Zezwolenie na przesyłanie ciasteczek i nagłówków uwierzytelniających
+    allow_credentials=True,
     allow_methods=["*"],                     # Dozwolone metody HTTP
     allow_headers=["*"],                     # Dozwolone nagłówki
 )
@@ -39,6 +42,8 @@ app.include_router(users_router, prefix="/api") #Endpoint do pobierania użytkow
 app.include_router(bt_points_router, prefix="/api")
 
 # Endpoint testowy, aby sprawdzić, czy API działa
+
+
 @app.get("/")
 async def root():
     return {"message": "API is running!"}
