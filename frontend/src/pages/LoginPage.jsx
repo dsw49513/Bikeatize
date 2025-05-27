@@ -1,50 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from 'react';
+import { AuthContext } from '../context/AuthContext';
+import { loginUser } from '../api/userApi';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState(""); 
-  const [password, setPassword] = useState("");
+  const { login } = useContext(AuthContext);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = async (e) => {
     e.preventDefault();
-
     try {
-      const res = await fetch("http://localhost:8000/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        alert("Zalogowano! Token: " + data.access_token);
-      } else {
-        alert("Błąd logowania");
-      }
+      const data = await loginUser(email, password);
+      login(data.access_token); 
     } catch (err) {
-      alert("Błąd serwera");
+      setError('Spróbuj jeszcze raz');
     }
   };
 
   return (
     <div>
       <h2>Logowanie</h2>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
       <form onSubmit={handleLogin}>
         <input
           type="email"
-          placeholder="E-mail"
+          placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          required
         />
         <input
           type="password"
           placeholder="Hasło"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          required
         />
         <button type="submit">Zaloguj</button>
       </form>
+      <p><a href="/register">Zarejestruj się</a></p>
     </div>
   );
 };
