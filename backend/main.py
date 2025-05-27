@@ -10,6 +10,8 @@ from backend.routes.distance import router as distance_router
 # Endpointy do mierzenia trasy start stop
 from backend.routes.trips import router as trips_router
 # potrzebne do pobrania użytkowników przez frontened
+from backend.routes.bt_points import router as bt_points_router
+
 from backend.routes.users import router as users_router
 
 
@@ -49,6 +51,7 @@ app.include_router(distance_router)  # Endpointy do zliczania kilometrów
 app.include_router(trips_router)  # Endpointy do mierzenia trasy start-stop
 # Endpoint do pobierania użytkowników
 app.include_router(users_router, prefix="/api")
+app.include_router(bt_points_router)
 
 # Endpoint testowy, aby sprawdzić, czy API działa
 

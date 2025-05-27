@@ -1,40 +1,35 @@
 import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 const RegisterPage = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  console.log(">>> Załadowano RegisterPage"); // TEST
+  const navigate = useNavigate();
 
   const handleRegister = async (e) => {
-  e.preventDefault();
-  console.log("Kliknięto Zarejestruj"); // DEBUG
+    e.preventDefault();
 
-  try {
-    const res = await fetch("http://localhost:8000/api/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: username, email, password }),
+    try {
+      const res = await fetch("http://localhost:8000/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: username, email, password }),
+      });
 
-    });
-
-    const data = await res.json();
-    console.log("Rejestracja - odpowiedź serwera:", data);
-
-    if (res.ok) {
-      alert("Użytkownik zarejestrowany!");
-    } else {
-      alert("Błąd: " + (data.detail || JSON.stringify(data)));
+      if (res.ok) {
+        alert("Rejestracja zakończona sukcesem! Zaloguj się.");
+        navigate("/login");
+      } else {
+        alert("Błąd rejestracji");
+      }
+    } catch (err) {
+      alert("Błąd połączenia z serwerem");
     }
-  } catch (err) {
-    console.error("Błąd połączenia z serwerem:", err);
-    alert("Błąd połączenia z serwerem");
-  }
-};
-
+  };
 
   return (
-    <div>
+    <div style={{ padding: "2rem", maxWidth: "400px", margin: "0 auto" }}>
       <h2>Rejestracja</h2>
       <form onSubmit={handleRegister}>
         <input
@@ -43,6 +38,7 @@ const RegisterPage = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
         />
         <input
           type="email"
@@ -50,6 +46,7 @@ const RegisterPage = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
         />
         <input
           type="password"
@@ -57,9 +54,19 @@ const RegisterPage = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
         />
-        <button type="submit">Zarejestruj</button>
+        <button type="submit" style={{ width: "100%" }}>Zarejestruj się</button>
       </form>
+
+      <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
+        <p>
+          Masz już konto? <Link to="/login">Zaloguj się</Link>
+        </p>
+        <p>
+          <Link to="/">← Powrót na stronę główną</Link>
+        </p>
+      </div>
     </div>
   );
 };
