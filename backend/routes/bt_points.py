@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from backend.auth import get_current_user
+from backend.core.security import get_current_user
 from database.database import get_db
 from database.models import User
 

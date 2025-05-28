@@ -4,6 +4,7 @@ import { AuthContext } from "../context/AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import TripsHistory from "../components/TripsHistory";
+import RideTracker from "../components/RideTracker";
 
 const Dashboard = () => {
   const [location, setLocation] = useState(null);
@@ -33,12 +34,18 @@ const Dashboard = () => {
       }
     );
 
+    console.log("Token JWT:", token);
     // 🔐 Fetch punktów z backendu
     fetch("http://localhost:8000/bt_points/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`, // ← wymagany nagłówek autoryzacyjny
+            "Content-Type": "application/json", // ← opcjonalny, ale zalecany
+        },
+
     })
+
+
       .then((res) => res.json())
       .then((data) => {
         setPoints(data.points);
@@ -103,6 +110,7 @@ const Dashboard = () => {
         <h3>🚴 Dystans całkowity:</h3>
         <p>{distance !== null ? `${distance} km` : "Ładowanie..."}</p>
         <TripsHistory />
+        <RideTracker />
       </section>
     </div>
   );

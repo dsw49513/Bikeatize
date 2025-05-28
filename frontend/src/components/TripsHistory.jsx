@@ -9,26 +9,29 @@ const TripsHistory = () => {
   const [loading, setLoading] = useState(true); // Flaga ładowania
 
   useEffect(() => {
-    if (!token) return; // Jeżeli nie mamy tokenu, nie wykonujemy zapytania
+  if (!token) return;
 
-    // Dekodowanie tokenu JWT w celu uzyskania user_id
-    const decoded = jwtDecode(token);
-    console.log("Zdekodowany token JWT:", decoded);
-    const userId = decoded.user_id; // Zakładamy, że backend zapisuje user_id jako "sub"
+  const decoded = jwtDecode(token);
+  console.log("Zdekodowany token JWT:", decoded);
+  const userId = decoded.user_id;
 
-    // Pobieranie historii tras z backendu
-    fetch(`http://localhost:8000/trip_history/${userId}`)
-      .then((res) => res.json())
-      .then((data) => {
-        console.log("Odpowiedź z backendu:", data);
-        setTrips(data?.trips || []); // Zapisanie danych tras w stanie
-        setLoading(false); // Wyłączenie trybu ładowania
-      })
-      .catch((err) => {
-        console.error("Błąd pobierania historii tras:", err);
-        setLoading(false);
-      });
-  }, [token]);
+  fetch(`http://localhost:8000/trip_history/${userId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Odpowiedź z backendu:", data);
+      setTrips(data?.trips || []);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Błąd pobierania historii tras:", err);
+      setLoading(false);
+    });
+}, [token]);
 
   if (loading) return <p>⏳ Ładowanie historii tras...</p>;
 
