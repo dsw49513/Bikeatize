@@ -23,10 +23,13 @@ const LoginPage = () => {
         login(data.access_token);
         navigate("/dashboard");
       } else {
-        alert("Błąd logowania");
+        const errorText = await res.text();
+        console.error("Błąd backendu:", errorText);
+        alert("Błąd logowania: " + errorText);
       }
     } catch (err) {
-      alert("Błąd serwera");
+      console.error("Błąd połączenia z backendem:", err);
+      alert("Błąd połączenia z serwerem");
     }
   };
 

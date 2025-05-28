@@ -1,15 +1,21 @@
-const BASE_URL = '/api/users';
+const BASE_URL = 'http://localhost:8000/api/users';
 
 // ✅ CREATE - dodaj użytkownika
 export async function createUser(user) {
+  const token = localStorage.getItem('token');
+
   const res = await fetch(BASE_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
     body: JSON.stringify(user),
   });
 
   if (!res.ok) {
-    throw new Error('Błąd dodawania użytkownika');
+    const errorText = await res.text();
+    throw new Error(`Błąd dodawania użytkownika: ${errorText}`);
   }
 
   return await res.json();

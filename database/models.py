@@ -1,48 +1,40 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime
+from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime, timezone
 
-
-# Tworzenie klasy bazowej dla modeli SQLAlchemy
+# Klasa bazowa SQLAlchemy
 Base = declarative_base()
 
 # Model użytkownika
-
-
 class User(Base):
     __tablename__ = "users"
 
-    # Unikalny identyfikator użytkownika
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(50), nullable=False)  # Imię użytkownika max 50 znaków
-    email = Column(String(100), nullable=False, unique=True, index=True)
-    hashed_password = Column(String(255), nullable=False) # Hasło użytkownika (hashowane)
-    refresh_token = Column(String(512), nullable=True)  # refresh token do autoryzacji
+    id = Column(Integer, primary_key=True, index=True)  # Unikalny ID
+    name = Column(String(100))
+    email = Column(String(100), unique=True, index=True)
+    hashed_password = Column(String(128))
+    refresh_token = Column(String(512), nullable=True)  # opcjonalny refresh token
     points = Column(Integer, default=0)
     total_distance = Column(Float, default=0.0)
-    locations = relationship("Location", back_populates="user") # użytkownik moze miec  wiele lokalizacji
+
+    # Relacja 1:N z lokalizacjami i trasami
+    locations = relationship("Location", back_populates="user")
     trips = relationship("Trip", back_populates="user")
 
-# Model zapisu lokalizacji
-
-
+# Model lokalizacji GPS
 class Location(Base):
-    __tablename__ = "locations"  # Nazwa tabeli w bazie
+    __tablename__ = "locations"
 
-    # Unikalny identyfikator lokalizacji
-    location_id = Column(Integer, primary_key=True,
-                         autoincrement=True, index=True)
-    # Powiązanie lokalizacji z użytkownikiem
+    location_id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    latitude = Column(Float, nullable=False)  # Szerokość geograficzna lokal.
-    longitude = Column(Float, nullable=False)  # Długość geograficzna lokal.
-    # Czas zapisu lokalizacji (domyślnie czas UTC)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
     timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Powiązanie z użytkownikiem
     user = relationship("User", back_populates="locations")
 
-# Model zapisu trasy
-
-
+# Model trasy
 class Trip(Base):
     __tablename__ = "trips"
 
@@ -50,14 +42,13 @@ class Trip(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     start_time = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     end_time = Column(DateTime, nullable=True)
-    total_distance = Column(Float, default=0.0)  # Dystans po zakończeniu trasy
+    total_distance = Column(Float, default=0.0)
 
-    # Powiązane lokalizacje
+    # Relacja z użytkownikiem i lokalizacjami trasy
+    user = relationship("User", back_populates="trips")
     locations = relationship("TripLocation", back_populates="trip")
 
-# Model punktów zapisu trasy
-
-
+# Model punktów GPS przypisanych do trasy
 class TripLocation(Base):
     __tablename__ = "trip_locations"
 

@@ -9,7 +9,7 @@ from backend.routes.distance import router as distance_router
 from backend.routes.trips import router as trips_router  # Endpointy do mierzenia trasy start stop
 from backend.routes.users import router as users_router  # potrzebne do pobrania użytkowników przez frontened
 from backend.routes.bt_points import router as bt_points_router
-
+from backend.routes.api_router import router as api_router
 
 
 # Tworzenie aplikacji FastAPI
@@ -24,13 +24,13 @@ origins = [
 # Otwarcie dostępu dla frontendu
 app.add_middleware(
     CORSMiddleware,
-    # TYLKO DO TESTOWANIA
-    allow_origins=["*"],
-    # allow_origins=origins, # Dozwolone originy
-    # Zezwolenie na przesyłanie ciasteczek i nagłówków uwierzytelniających
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
     allow_credentials=True,
-    allow_methods=["*"],                     # Dozwolone metody HTTP
-    allow_headers=["*"],                     # Dozwolone nagłówki
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Rejestracja routerów
@@ -40,6 +40,7 @@ app.include_router(distance_router, prefix="/api")  # Endpointy do zliczania kil
 app.include_router(trips_router, prefix="/api")  # Endpointy do mierzenia trasy start-stop
 app.include_router(users_router, prefix="/api") #Endpoint do pobierania użytkowników
 app.include_router(bt_points_router, prefix="/api")
+app.include_router(api_router, prefix="/api")
 
 # Endpoint testowy, aby sprawdzić, czy API działa
 
