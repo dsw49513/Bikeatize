@@ -55,3 +55,6 @@ const TripsHistory = () => {
 };
 
 export default TripsHistory;
+
+
+//komentarz żeby można było zrobić commit
