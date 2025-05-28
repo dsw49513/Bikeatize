@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import declarative_base, relationship
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # Tworzenie klasy bazowej dla modeli SQLAlchemy
@@ -21,6 +21,7 @@ class User(Base):
     points = Column(Integer, default=0)
     total_distance = Column(Float, default=0.0)
     locations = relationship("Location", back_populates="user") # użytkownik moze miec  wiele lokalizacji
+    trips = relationship("Trip", back_populates="user")
 
 # Model zapisu lokalizacji
 
@@ -36,8 +37,7 @@ class Location(Base):
     latitude = Column(Float, nullable=False)  # Szerokość geograficzna lokal.
     longitude = Column(Float, nullable=False)  # Długość geograficzna lokal.
     # Czas zapisu lokalizacji (domyślnie czas UTC)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     user = relationship("User", back_populates="locations")
 
 # Model zapisu trasy
@@ -48,7 +48,7 @@ class Trip(Base):
 
     trip_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    start_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    start_time = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     end_time = Column(DateTime, nullable=True)
     total_distance = Column(Float, default=0.0)  # Dystans po zakończeniu trasy
 
@@ -65,7 +65,7 @@ class TripLocation(Base):
     trip_id = Column(Integer, ForeignKey("trips.trip_id"), nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     # Powiązanie z trasą
     trip = relationship("Trip", back_populates="locations")
