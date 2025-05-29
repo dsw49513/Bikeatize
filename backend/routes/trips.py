@@ -7,9 +7,6 @@ from backend.utils import calculate_distance
 from pydantic import BaseModel
 from datetime import datetime
 
-from backend.routes.bt_points import award_bt_points
-
-
 
 router = APIRouter()
 
@@ -123,10 +120,9 @@ async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
         {"distance": total_distance, "trip_id": trip_id}
     )
 
-
     # Pobierz user_id z trasy
 
-     # Pobiera ID użytkownika powiązanego z trasą
+    # Pobiera ID użytkownika powiązanego z trasą
 
     user_query = await db.execute(
         text("SELECT user_id FROM trips WHERE trip_id = :trip_id"),
@@ -154,15 +150,6 @@ async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
 
 # 📜 Historia tras użytkownika
 @router.get("/trip_history/{user_id}")
-
-    # Przyznaje punkty BT za zakończoną trasę
-    if user_id:
-        await award_bt_points(user_id, total_distance, db)
-
-    return {"trip_id": trip_id, "total_distance_km": total_distance, "message": "Trasa zakończona!"}
-
-
-
 async def trip_history(user_id: int, db: AsyncSession = Depends(get_db)):
     query = await db.execute(
         text("SELECT trip_id, start_time, end_time, total_distance FROM trips WHERE user_id = :user_id ORDER BY start_time DESC"),
