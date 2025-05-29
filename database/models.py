@@ -1,8 +1,10 @@
+
 from sqlalchemy import Column, Integer, String, ForeignKey, Float, DateTime
 from sqlalchemy.orm import relationship, declarative_base
 from datetime import datetime, timezone
 
 # Klasa bazowa SQLAlchemy
+
 Base = declarative_base()
 
 # Model użytkownika
@@ -21,8 +23,10 @@ class User(Base):
     locations = relationship("Location", back_populates="user")
     trips = relationship("Trip", back_populates="user")
 
+
 # Model lokalizacji GPS
 class Location(Base):
+
     __tablename__ = "locations"
 
     location_id = Column(Integer, primary_key=True, autoincrement=True, index=True)
@@ -33,6 +37,7 @@ class Location(Base):
 
     # Powiązanie z użytkownikiem
     user = relationship("User", back_populates="locations")
+
 
 # Model trasy
 class Trip(Base):
@@ -48,6 +53,7 @@ class Trip(Base):
     user = relationship("User", back_populates="trips")
     locations = relationship("TripLocation", back_populates="trip")
 
+
 # Model punktów GPS przypisanych do trasy
 class TripLocation(Base):
     __tablename__ = "trip_locations"
@@ -60,3 +66,4 @@ class TripLocation(Base):
 
     # Powiązanie z trasą
     trip = relationship("Trip", back_populates="locations")
+

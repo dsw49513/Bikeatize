@@ -1,3 +1,4 @@
+
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
@@ -30,10 +31,12 @@ const LoginPage = () => {
     } catch (err) {
       console.error("Błąd połączenia z backendem:", err);
       alert("Błąd połączenia z serwerem");
+
     }
   };
 
   return (
+
     <div style={{ padding: "2rem", maxWidth: "400px", margin: "0 auto" }}>
       <h2>Logowanie</h2>
       <form onSubmit={handleLogin}>
@@ -44,12 +47,14 @@ const LoginPage = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+
         />
         <input
           type="password"
           placeholder="Hasło"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+
           required
           style={{ display: "block", width: "100%", marginBottom: "1rem" }}
         />
@@ -64,8 +69,11 @@ const LoginPage = () => {
           <Link to="/">← Powrót na stronę główną</Link>
         </p>
       </div>
+
     </div>
   );
 };
 
+
 export default LoginPage;
+

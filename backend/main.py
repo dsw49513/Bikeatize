@@ -34,6 +34,7 @@ app.add_middleware(
 )
 
 # Rejestracja routerów
+
 app.include_router(geolocation_router, prefix="/api")  # Endpointy lokalizacji
 app.include_router(auth_router, prefix="/api")  # Endpointy związane z autoryzacją
 app.include_router(distance_router, prefix="/api")  # Endpointy do zliczania kilometrów
@@ -41,6 +42,7 @@ app.include_router(trips_router, prefix="/api")  # Endpointy do mierzenia trasy 
 app.include_router(users_router, prefix="/api") #Endpoint do pobierania użytkowników
 app.include_router(bt_points_router, prefix="/api")
 app.include_router(api_router, prefix="/api")
+
 
 # Endpoint testowy, aby sprawdzić, czy API działa
 
