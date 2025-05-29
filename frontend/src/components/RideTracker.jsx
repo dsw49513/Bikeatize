@@ -2,13 +2,12 @@ import React, { useState, useEffect, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 
-const RideTracker = () => {
-  const { token } = useContext(AuthContext); // Token JWT użytkownika
-  const [tripId, setTripId] = useState(null); // ID aktualnej trasy
-  const [distance, setDistance] = useState(null); // Pokonany dystans
-  const intervalRef = useRef(null); // Interwał do wysyłania lokalizacji
+const RideTracker = ({ onTripStopped }) => {
+  const { token } = useContext(AuthContext);
+  const [tripId, setTripId] = useState(null);
+  const [distance, setDistance] = useState(null);
+  const intervalRef = useRef(null);
 
-  // Funkcja dekodująca token i zwracająca user_id
   const getUserId = () => {
     try {
       const decoded = jwtDecode(token);
@@ -19,7 +18,6 @@ const RideTracker = () => {
     }
   };
 
-  // Rozpoczęcie trasy — wywołuje backend i ustawia interwał wysyłania lokalizacji
   const startTrip = async () => {
     const userId = getUserId();
     if (!userId) return;
@@ -41,14 +39,13 @@ const RideTracker = () => {
       const data = await res.json();
       setTripId(data.trip_id);
 
-      intervalRef.current = setInterval(sendLocationUpdate, 5000); // Co 5 sek. wysyłamy lokalizację
+      intervalRef.current = setInterval(sendLocationUpdate, 5000);
     } catch (err) {
       console.error("Błąd przy rozpoczynaniu trasy:", err);
       alert("Nie udało się rozpocząć trasy.");
     }
   };
 
-  // Wysyłanie bieżącej lokalizacji użytkownika do backendu
   const sendLocationUpdate = () => {
     if (!tripId) return;
 
@@ -82,11 +79,10 @@ const RideTracker = () => {
     );
   };
 
-  // Zakończenie trasy — wysyła żądanie zakończenia i czyści interwał
   const stopTrip = async () => {
     if (!tripId) return;
 
-    clearInterval(intervalRef.current); // Przerwanie interwału
+    clearInterval(intervalRef.current);
 
     try {
       const res = await fetch(`http://localhost:8000/api/stop_trip/${tripId}`, {
@@ -104,7 +100,10 @@ const RideTracker = () => {
 
       const data = await res.json();
       setDistance(data.total_distance_km);
-      setTripId(null); // Trasa zakończona
+      setTripId(null);
+
+      // 🔁 Wywołanie callbacku – np. odśwież historię
+      if (onTripStopped) onTripStopped();
     } catch (err) {
       console.error("Błąd przy zatrzymywaniu trasy:", err);
       alert("Nie udało się zakończyć trasy.");

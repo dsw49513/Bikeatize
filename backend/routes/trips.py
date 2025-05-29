@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
 from database.database import get_db
+from fastapi import HTTPException
 # Importujemy funkcję do obliczania dystansu
 from backend.utils import calculate_distance
 from pydantic import BaseModel
@@ -140,3 +141,34 @@ async def get_ranking(session: AsyncSession = Depends(get_db)):
     ranking = result.fetchall()
 
     return [{"name": row[0], "points": row[1]} for row in ranking]
+
+# Endpoint do usuwania trasy
+@router.delete("/delete/{trip_id}")
+async def delete_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
+    try:
+        # Usunięcie lokalizacji powiązanych z trasą
+        await db.execute(
+            text("DELETE FROM trip_locations WHERE trip_id = :trip_id"),
+            {"trip_id": trip_id}
+        )
+        # Usunięcie trasy
+        await db.execute(
+            text("DELETE FROM trips WHERE trip_id = :trip_id"),
+            {"trip_id": trip_id}
+        )
+        await db.commit()
+        return {"message": f"Trasa {trip_id} została usunięta"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=f"Błąd podczas usuwania trasy: {str(e)}")
+
+
+# Endpoint do sumy dystansu dla użytkownika
+@router.get("/total_distance/{user_id}")
+async def get_total_distance(user_id: int, db: AsyncSession = Depends(get_db)):
+    query = await db.execute(
+        text("SELECT SUM(total_distance) FROM trips WHERE user_id = :user_id"),
+        {"user_id": user_id}
+    )
+    result = query.scalar() or 0.0
+    return {"user_id": user_id, "total_distance": round(result, 2)}
