@@ -1,3 +1,22 @@
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from backend.core.security import get_current_user
+from database.database import get_db
+from database.models import User
+
+router = APIRouter()
+
+@router.get("/bt_points/me")
+async def get_my_points(
+    session: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    return {
+        "points": current_user.points,
+        "total_distance": current_user.total_distance
+    }
+=======
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
@@ -68,3 +87,4 @@ async def get_user_points(user_id: int, db: AsyncSession = Depends(get_db)):
         return {"user_id": user_id, "total_points": total_points}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Błąd pobierania punktów: {e}")
+

@@ -1,74 +1,159 @@
-from fastapi import APIRouter, Depends  
-from sqlalchemy.ext.asyncio import AsyncSession  
-from sqlalchemy.sql import text  
-from database.database import get_db  
-from backend.utils import calculate_distance  # Importujemy funkcję do obliczania dystansu
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import text
+from database.database import get_db
+from backend.utils import calculate_distance
+from pydantic import BaseModel
+from datetime import datetime
+
 from backend.routes.bt_points import award_bt_points
 
 
-# Router dla endpointow
+
 router = APIRouter()
 
-@router.post("/start_trip/{user_id}")  # Definicja endpointu dla rozpoczecia trasy
+
+# Model danych dla aktualizacji lokalizacji
+class LocationUpdate(BaseModel):
+    latitude: float
+    longitude: float
+
+
+# 🎯 Logika naliczania punktów za dystans
+def calculate_points(distance: float) -> int:
+    points = 0
+
+    if distance <= 10:
+        points = distance * 10
+    elif distance <= 20:
+        points = 100 + (distance - 10) * 20
+    elif distance <= 30:
+        points = 300 + (distance - 20) * 30
+    elif distance <= 50:
+        points = 600 + (distance - 30) * 40
+    else:
+        points = 1400 + (distance - 50) * 50
+
+    return int(points)
+
+
+# 🏆 Nowa funkcja: sprawdzanie osiągnięć użytkownika
+def check_achievements(distance: float, start_time: datetime) -> list[str]:
+    achievements = []
+
+    # Osiągnięcie: jazda nocna (22:00–06:00)
+    if start_time.hour >= 22 or start_time.hour < 6:
+        achievements.append("🌙 Jazda nocna")
+
+    # Osiągnięcia za pokonany dystans
+    if distance >= 10:
+        achievements.append("🚴 Przejechano 10 km")
+    if distance >= 20:
+        achievements.append("🔥 Dystans 20 km – niezły wynik!")
+    if distance >= 30:
+        achievements.append("🏅 Ponad 30 km – gratulacje!")
+    if distance >= 50:
+        achievements.append("💪 50 km – masz moc!")
+
+    return achievements
+
+
+# 🚦 Endpoint: rozpoczęcie trasy
+@router.post("/start_trip/{user_id}")
 async def start_trip(user_id: int, db: AsyncSession = Depends(get_db)):
     try:
-        print(f" Start nowej trasy dla user_id: {user_id}")
-
-        # Nowy rekord wstawiany w tabele rozpoczynajacy trase
         await db.execute(
             text("INSERT INTO trips (user_id, start_time) VALUES (:user_id, NOW())"),
             {"user_id": user_id}
         )
-        await db.commit()  # Zapis zmiany w tabeli
+        await db.commit()
 
-        # Pobiera ID nowo utworzonej trasy
         trip_id_query = await db.execute(text("SELECT LAST_INSERT_ID()"))
         trip_id = trip_id_query.scalar()
 
         if trip_id is None:
-            raise ValueError("Nie udało się pobrać trip_id!")  # Obsługa błędu jeśli nie uda się pobrać trip_id debugging
+            raise ValueError("Nie udało się pobrać trip_id!")
 
         return {"trip_id": trip_id, "message": "Trasa rozpoczęta."}
     except Exception as e:
-        print(f" Błąd w start_trip: {e}")  # Log bledow
         return {"error": str(e)}
 
-@router.post("/update_location/{trip_id}")  # Endpoint do aktualizacji lokalizacji
-async def update_location(trip_id: int, latitude: float, longitude: float, db: AsyncSession = Depends(get_db)):
-    #  umieszczana jest lokalizacja do bazy danych
-    query = await db.execute(
-        text("INSERT INTO trip_locations (trip_id, latitude, longitude, timestamp) VALUES (:trip_id, :lat, :lon, NOW())"),
-        {"trip_id": trip_id, "lat": latitude, "lon": longitude}
-    )
-    await db.commit()  # Zapisujemy zmiany w bazie danych
 
+# 📍 Endpoint: aktualizacja lokalizacji
+@router.post("/update_location/{trip_id}")
+async def update_location(trip_id: int, location: LocationUpdate, db: AsyncSession = Depends(get_db)):
+    await db.execute(
+        text("INSERT INTO trip_locations (trip_id, latitude, longitude, timestamp) VALUES (:trip_id, :lat, :lon, NOW())"),
+        {"trip_id": trip_id, "lat": location.latitude, "lon": location.longitude}
+    )
+    await db.commit()
     return {"trip_id": trip_id, "message": "Lokalizacja zapisana!"}
 
-@router.post("/stop_trip/{trip_id}")  # Endpoint do zakończenia trasy
+
+# ⛔ Endpoint: zakończenie trasy + naliczanie punktów i osiągnięć
+@router.post("/stop_trip/{trip_id}")
 async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
-    # Pobiera wszystkie lokalizacje dla danej trasy
+    # Pobranie lokalizacji trasy
     query = await db.execute(
         text("SELECT latitude, longitude FROM trip_locations WHERE trip_id = :trip_id ORDER BY timestamp"),
         {"trip_id": trip_id}
     )
     locations = query.fetchall()
 
-    # Oblicza całkowity dystans na podstawie zapisanych lokalizacji
+    # Oblicz dystans
     total_distance = calculate_distance(locations)
 
-    # Aktualizuje rekord trasy, dodając jej zakończenie oraz całkowity dystans
+    # Oblicz punkty
+    points_earned = calculate_points(total_distance)
+
+    # Pobierz datę rozpoczęcia trasy
+    start_time_query = await db.execute(
+        text("SELECT start_time FROM trips WHERE trip_id = :trip_id"),
+        {"trip_id": trip_id}
+    )
+    start_time = start_time_query.scalar()
+
+    # Sprawdź osiągnięcia
+    achievements = check_achievements(total_distance, start_time)
+
+    # Zakończ trasę + zapisz dystans
     await db.execute(
         text("UPDATE trips SET end_time = NOW(), total_distance = :distance WHERE trip_id = :trip_id"),
         {"distance": total_distance, "trip_id": trip_id}
     )
-    await db.commit()  # Zapis zmiany w bazie danych
+
+
+    # Pobierz user_id z trasy
 
      # Pobiera ID użytkownika powiązanego z trasą
+
     user_query = await db.execute(
         text("SELECT user_id FROM trips WHERE trip_id = :trip_id"),
         {"trip_id": trip_id}
     )
     user_id = user_query.scalar()
+
+    # Dodaj punkty za dystans + osiągnięcia
+    total_points = points_earned + len(achievements) * 50
+
+    await db.execute(
+        text("UPDATE users SET points = points + :points WHERE id = :user_id"),
+        {"points": total_points, "user_id": user_id}
+    )
+    await db.commit()
+
+    return {
+        "trip_id": trip_id,
+        "total_distance_km": round(total_distance, 2),
+        "points_earned": total_points,
+        "achievements": achievements,
+        "message": "Trasa zakończona!"
+    }
+
+
+# 📜 Historia tras użytkownika
+@router.get("/trip_history/{user_id}")
 
     # Przyznaje punkty BT za zakończoną trasę
     if user_id:
@@ -77,21 +162,59 @@ async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
     return {"trip_id": trip_id, "total_distance_km": total_distance, "message": "Trasa zakończona!"}
 
 
-@router.get("/trip_history/{user_id}")  # Endpoint do pobrania historii tras użytkownika
+
 async def trip_history(user_id: int, db: AsyncSession = Depends(get_db)):
-    # Pobiera wszystkie trasy dla danego użytkownika, sortując od najnowszych
     query = await db.execute(
         text("SELECT trip_id, start_time, end_time, total_distance FROM trips WHERE user_id = :user_id ORDER BY start_time DESC"),
         {"user_id": user_id}
     )
     trips = query.fetchall()
-
-    # Formatuje dane wyjściowe jako listę
     trip_data = [
-        {"trip_id": trip[0], "start_time": trip[1], "end_time": trip[2], "total_distance_km": trip[3]}
-        for trip in trips
+        {
+            "trip_id": t[0],
+            "start_time": t[1],
+            "end_time": t[2],
+            "total_distance_km": round(t[3], 2) if t[3] is not None else 0.0
+        }
+        for t in trips
     ]
-
     return {"user_id": user_id, "trips": trip_data}
 
 
+# 🏆 Ranking użytkowników
+@router.get("/ranking")
+async def get_ranking(session: AsyncSession = Depends(get_db)):
+    result = await session.execute(
+        text("SELECT name, points FROM users ORDER BY points DESC")
+    )
+    return [{"name": row[0], "points": row[1]} for row in result.fetchall()]
+
+
+# ❌ Usunięcie trasy
+@router.delete("/delete/{trip_id}")
+async def delete_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
+    try:
+        await db.execute(
+            text("DELETE FROM trip_locations WHERE trip_id = :trip_id"),
+            {"trip_id": trip_id}
+        )
+        await db.execute(
+            text("DELETE FROM trips WHERE trip_id = :trip_id"),
+            {"trip_id": trip_id}
+        )
+        await db.commit()
+        return {"message": f"Trasa {trip_id} została usunięta"}
+    except Exception as e:
+        await db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ➕ Suma dystansu
+@router.get("/total_distance/{user_id}")
+async def get_total_distance(user_id: int, db: AsyncSession = Depends(get_db)):
+    query = await db.execute(
+        text("SELECT SUM(total_distance) FROM trips WHERE user_id = :user_id"),
+        {"user_id": user_id}
+    )
+    result = query.scalar() or 0.0
+    return {"user_id": user_id, "total_distance": round(result, 2)}

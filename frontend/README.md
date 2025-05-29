@@ -1,93 +1,103 @@
-<h1 align="center">
-  Vite Template React
-</h1>
+🚴‍♂️ Bikeatize
+Bikeatize to aplikacja webowa dla entuzjastów jazdy na rowerze. Pozwala:
 
-<p align="center">
-  <a href="https://github.com/SafdarJamal/vite-template-react/releases">
-    <img src="https://img.shields.io/github/v/release/SafdarJamal/vite-template-react" alt="GitHub Release (latest by date)" />
-  </a>
-  <a href="https://github.com/SafdarJamal/vite-template-react/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/SafdarJamal/vite-template-react" alt="License" />
-  </a>
-</p>
+śledzić trasy i lokalizację użytkownika,
 
-<p align="center">
-    A <a href="https://vitejs.dev">Vite</a> + <a href="https://react.dev">React</a> starter template.
-</p>
+gromadzić punkty za pokonany dystans,
 
-![Vite Template React](https://github.com/SafdarJamal/vite-template-react/assets/48409548/4b1eb99e-01b8-4752-91c0-76930e7948c1)
+zarządzać użytkownikami,
 
-## Folder Structure
+wizualizować pozycję na mapie,
 
-No configuration or complicated folder structures, just the files you need to build your app:
+analizować historię aktywności.
 
-```
-vite-template-react
-├── node_modules
-├── public
-│   ├── favicon.svg
-│   └── robots.txt
-└── src
-    ├── App.css
-    ├── App.jsx
-    ├── App.test.jsx
-    ├── index.css
-    ├── index.jsx
-    └── logo.svg
-    └── setupTests.js
-├── .gitignore
-├── index.html
-├── package.json
-├── README.md
-├── vite.config.js
-```
+🗂️ Struktura projektu
+bash
+Copy
+Edit
+Bikeatize/
+├── backend/                      # Backend FastAPI + SQLAlchemy
+│   ├── auth.py                  # Logika JWT, logowanie, rejestracja
+│   ├── main.py                  # Główna aplikacja FastAPI
+│   ├── database/                # Połączenie z bazą danych
+│   │   ├── database.py
+│   │   ├── models.py
+│   └── routes/                  # Endpointy REST API
+│       ├── bt_points.py         # System punktów
+│       ├── distance.py          # Obliczanie dystansu (Haversine)
+│       ├── geolocation.py       # Zapis i odczyt lokalizacji
+│       ├── trips.py             # Start/Stop trasy, zapis punktów
+│       └── users.py             # CRUD użytkowników
+├── frontend/                    # Frontend React + Vite
+│   ├── src/
+│   │   ├── context/             # AuthContext – globalna autoryzacja
+│   │   ├── pages/               # Widoki aplikacji
+│   │   │   ├── LoginPage.jsx
+│   │   │   ├── RegisterPage.jsx
+│   │   │   ├── Dashboard.jsx    # Mapa, punkty, dystans
+│   │   │   └── HomePage.jsx
+│   ├── public/
+│   └── package.json             # Zależności React
+├── .env                         # Sekrety backendu (JWT, DB)
+├── requirements.txt             # Zależności backendu (FastAPI, etc.)
+└── README.md
+🔧 Wymagania
+Python 3.10+
 
-## Development
+Node.js (frontend)
 
-To get a local copy of the code, clone it using git:
+MySQL 8 (baza danych)
 
-```
-git clone https://github.com/SafdarJamal/vite-template-react.git
-cd vite-template-react
-```
+Docker (opcjonalnie do uruchomienia bazy)
 
-Make it your own:
+⚙️ Uruchomienie projektu
+1. Uruchomienie bazy danych (Docker):
+bash
+Copy
+Edit
+docker run --name biketize-db \
+  -e MYSQL_ROOT_PASSWORD=secret \
+  -e MYSQL_DATABASE=bikeatize \
+  -p 3306:3306 \
+  -d mysql:8
+2. Backend (FastAPI):
+bash
+Copy
+Edit
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r ../requirements.txt
+uvicorn main:app --reload
+3. Frontend (React):
+bash
+Copy
+Edit
+cd frontend
+npm install
+npm run dev
+🔐 Backend – najważniejsze endpointy
+Metoda	Endpoint	Opis
+POST	/api/register	Rejestracja użytkownika
+POST	/api/login	Logowanie, JWT w odpowiedzi
+GET	/bt_points/me	Pobranie punktów i dystansu (JWT)
+POST	/start_trip/{user_id}	Rozpoczęcie nowej trasy
+POST	/update_location/{trip_id}	Zapisanie lokalizacji trasy
+POST	/stop_trip/{trip_id}	Zakończenie trasy i przyznanie punktów
+GET	/trip_history/{user_id}	Historia tras
 
-```
-rm -rf .git && git init && npm init
-git add .
-git commit -m "Initial commit"
-```
+💡 Frontend – opis działania
+LoginPage – loguje użytkownika, zapisuje token do AuthContext, przekierowuje do /dashboard
 
-Install dependencies:
+RegisterPage – tworzy konto i przekierowuje do logowania
 
-```
-npm i
-```
+Dashboard – pobiera punkty i dystans z backendu, wyświetla mapę z lokalizacją użytkownika
 
-Now, you can start a local web server by running:
+HomePage – strona główna, linki do logowania/rejestracji
 
-```
-npm start
-```
+🗺️ Mapa i lokalizacja
+Używamy:
 
-And then open http://localhost:3000 to view it in the browser.
+react-leaflet
 
-#### Available Scripts
-
-In this project, you can run the following scripts:
-
-| Script        | Description                                             |
-| ------------- | ------------------------------------------------------- |
-| npm start     | Runs the app in the development mode.                   |
-| npm test      | Launches the test runner in the interactive watch mode. |
-| npm run build | Builds the app for production to the `dist` folder.     |
-| npm run serve | Serves the production build from the `dist` folder.     |
-
-## Credits
-
-Vite Template React is built and maintained by [Safdar Jamal](https://safdarjamal.github.io).
-
-## License
-
-This project is licensed under the terms of the [MIT license](https://github.com/SafdarJamal/vite-template-react/blob/main/LICENSE).
+leaflet

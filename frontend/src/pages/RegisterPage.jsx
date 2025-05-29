@@ -1,45 +1,45 @@
-
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
 
-const LoginPage = () => {
-  const [email, setEmail] = useState(""); 
+const RegisterPage = () => {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
 
-  const handleLogin = async (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:8000/api/login", {
+      const res = await fetch("http://localhost:8000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ name: username, email, password }),
       });
 
       if (res.ok) {
-        const data = await res.json();
-        login(data.access_token);
-        navigate("/dashboard");
+        alert("Rejestracja zakończona sukcesem! Zaloguj się.");
+        navigate("/login");
       } else {
-        const errorText = await res.text();
-        console.error("Błąd backendu:", errorText);
-        alert("Błąd logowania: " + errorText);
+        alert("Błąd rejestracji");
       }
     } catch (err) {
-      console.error("Błąd połączenia z backendem:", err);
       alert("Błąd połączenia z serwerem");
-
     }
   };
 
   return (
-
     <div style={{ padding: "2rem", maxWidth: "400px", margin: "0 auto" }}>
-      <h2>Logowanie</h2>
-      <form onSubmit={handleLogin}>
+      <h2>Rejestracja</h2>
+      <form onSubmit={handleRegister}>
+        <input
+          type="text"
+          placeholder="Nazwa użytkownika"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+        />
         <input
           type="email"
           placeholder="E-mail"
@@ -47,33 +47,28 @@ const LoginPage = () => {
           onChange={(e) => setEmail(e.target.value)}
           required
           style={{ display: "block", width: "100%", marginBottom: "1rem" }}
-
         />
         <input
           type="password"
           placeholder="Hasło"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-
           required
           style={{ display: "block", width: "100%", marginBottom: "1rem" }}
         />
-        <button type="submit" style={{ width: "100%" }}>Zaloguj</button>
+        <button type="submit" style={{ width: "100%" }}>Zarejestruj się</button>
       </form>
 
       <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
         <p>
-          Nie masz jeszcze konta? <Link to="/register">Zarejestruj się</Link>
+          Masz już konto? <Link to="/login">Zaloguj się</Link>
         </p>
         <p>
           <Link to="/">← Powrót na stronę główną</Link>
         </p>
       </div>
-
     </div>
   );
 };
 
-
-export default LoginPage;
-
+export default RegisterPage;
