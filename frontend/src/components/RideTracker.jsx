@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
+import React, { useState, useContext, useRef } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 
@@ -6,6 +6,8 @@ const RideTracker = ({ onTripStopped }) => {
   const { token } = useContext(AuthContext);
   const [tripId, setTripId] = useState(null);
   const [distance, setDistance] = useState(null);
+  const [points, setPoints] = useState(null);
+  const [achievements, setAchievements] = useState([]);
   const intervalRef = useRef(null);
 
   const getUserId = () => {
@@ -38,7 +40,6 @@ const RideTracker = ({ onTripStopped }) => {
 
       const data = await res.json();
       setTripId(data.trip_id);
-
       intervalRef.current = setInterval(sendLocationUpdate, 5000);
     } catch (err) {
       console.error("Błąd przy rozpoczynaniu trasy:", err);
@@ -50,7 +51,7 @@ const RideTracker = ({ onTripStopped }) => {
     if (!tripId) return;
 
     if (!navigator.geolocation) {
-      console.error("Geolokalizacja nie jest dostępna w Twojej przeglądarce.");
+      console.error("Geolokalizacja nie jest dostępna.");
       return;
     }
 
@@ -59,16 +60,14 @@ const RideTracker = ({ onTripStopped }) => {
         const { latitude, longitude } = pos.coords;
 
         try {
-          await fetch(
-            `http://localhost:8000/api/update_location/${tripId}?latitude=${latitude}&longitude=${longitude}`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-            }
-          );
+          // ⛳ WRÓĆ do wersji z parametrami URL – zgodna z Twoim backendem
+          await fetch(`http://localhost:8000/api/update_location/${tripId}?latitude=${latitude}&longitude=${longitude}`, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
         } catch (err) {
           console.error("Błąd przy wysyłaniu lokalizacji:", err);
         }
@@ -100,9 +99,10 @@ const RideTracker = ({ onTripStopped }) => {
 
       const data = await res.json();
       setDistance(data.total_distance_km);
+      setPoints(data.points_earned);
+      setAchievements(data.achievements || []);
       setTripId(null);
 
-      // 🔁 Wywołanie callbacku – np. odśwież historię
       if (onTripStopped) onTripStopped();
     } catch (err) {
       console.error("Błąd przy zatrzymywaniu trasy:", err);
@@ -124,7 +124,21 @@ const RideTracker = ({ onTripStopped }) => {
       )}
 
       {distance !== null && (
-        <p>📏 Pokonany dystans: {distance} km</p>
+        <>
+          <p>📏 Pokonany dystans: {distance.toFixed(2)} km</p>
+          <p>🎁 Zdobyte punkty: {points}</p>
+
+          {achievements.length > 0 && (
+            <div>
+              <p>🏆 Osiągnięcia:</p>
+              <ul>
+                {achievements.map((a, idx) => (
+                  <li key={idx}>✔️ {a}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
