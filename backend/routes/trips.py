@@ -170,14 +170,43 @@ async def trip_history(user_id: int, db: AsyncSession = Depends(get_db)):
 
 # 🏆 Ranking użytkowników
 @router.get("/ranking")
-async def get_ranking(session: AsyncSession = Depends(get_db)):
-    result = await session.execute(
-        text("SELECT name, points FROM users ORDER BY points DESC")
-    )
-    return [{"name": row[0], "points": row[1]} for row in result.fetchall()]
+async def get_ranking(filter: str = "global", session: AsyncSession = Depends(get_db)):
+    if filter == "weekly":
+        result = await session.execute(
+            text("""
+                SELECT users.name, trips.total_distance
+                FROM users
+                JOIN trips ON users.id = trips.user_id
+                WHERE trips.end_time >= NOW() - INTERVAL 7 DAY
+            """)
+        )
+        trips = result.fetchall()
 
+        user_points = {}
+        for trip in trips:
+            name = trip[0]
+            distance = trip[1]
+            points = calculate_points(distance)
+
+            if name in user_points:
+                user_points[name] += points
+            else:
+                user_points[name] = points
+
+        ranking = sorted(user_points.items(), key=lambda x: x[1], reverse=True)
+        return [{"name": user[0], "points": user[1]} for user in ranking]
+
+    else:
+
+        result = await session.execute(
+            text("SELECT name, points FROM users ORDER BY points DESC")
+        )
+        ranking = result.fetchall()
+        return [{"name": row[0], "points": row[1]} for row in ranking]
 
 # ❌ Usunięcie trasy
+
+
 @router.delete("/delete/{trip_id}")
 async def delete_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
     try:
