@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -17,6 +17,7 @@ router = APIRouter()
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError("Brak zmiennej SECRET_KEY w pliku .env!")
+ALGORITHM = "HS256"
 
 
 @router.post("/register", response_model=Token)
@@ -63,6 +64,35 @@ async def login(user: UserLogin, db: AsyncSession = Depends(get_db)):
         "refresh_token": refresh_token,
         "token_type": "bearer"
     }
+
+
+@router.post("/logout")
+async def logout(authorization: str = Header(...), db: AsyncSession = Depends(get_db)):
+    try:
+
+        if not authorization.startswith("Bearer "):
+            raise HTTPException(
+                status_code=401, detail="Nieprawidłowy nagłówek Authorization")
+        token = authorization.split(" ")[1]
+
+        payload = jwt_decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if not email:
+            raise HTTPException(status_code=401, detail="Błędny token")
+
+        result = await db.execute(select(User).where(User.email == email))
+        user = result.scalar_one_or_none()
+        if not user:
+            raise HTTPException(
+                status_code=404, detail="Użytkownik nie znaleziony")
+
+        user.refresh_token = None
+        await db.commit()
+
+        return {"message": "Wylogowano pomyślnie"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Błąd podczas wylogowywania: {str(e)}")
 
 
 @router.post("/refresh", response_model=Token)

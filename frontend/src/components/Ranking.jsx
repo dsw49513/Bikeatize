@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 
+
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
   const [filter, setFilter] = useState("global");
@@ -29,43 +30,28 @@ const Ranking = () => {
   }, [filter]);
 
   return (
-    <section>
-      <h2>🏆 Ranking użytkowników</h2>
+    <section className="ranking-card">
+      <h2 className="ranking-title">🏆 Ranking użytkowników</h2>
 
-      <div style={{ marginBottom: "1rem", display: "flex", gap: "1rem" }}>
+      <div className="ranking-filters">
         <button
           onClick={() => setFilter("global")}
-          style={{
-            padding: "0.5rem 1rem",
-            backgroundColor: filter === "global" ? "#007bff" : "#f0f0f0",
-            color: filter === "global" ? "#fff" : "#000",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
+          className={`ranking-filter-button ${filter === "global" ? "active" : ""}`}
         >
           Ogólny
         </button>
         <button
           onClick={() => setFilter("weekly")}
-          style={{
-            padding: "0.5rem 1rem",
-            backgroundColor: filter === "weekly" ? "#007bff" : "#f0f0f0",
-            color: filter === "weekly" ? "#fff" : "#000",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-            cursor: "pointer",
-          }}
+          className={`ranking-filter-button ${filter === "weekly" ? "active" : ""}`}
         >
           Tygodniowy
         </button>
       </div>
 
-
       {loading ? (
-        <p>Ładowanie rankingu...</p>
+        <p className="ranking-loading">Ładowanie rankingu...</p>
       ) : ranking.length > 0 ? (
-        <table>
+        <table className="ranking-table">
           <thead>
             <tr>
               <th>#</th>
@@ -84,7 +70,7 @@ const Ranking = () => {
           </tbody>
         </table>
       ) : (
-        <p>Brak danych do wyświetlenia.</p>
+        <p className="ranking-empty">Brak danych do wyświetlenia.</p>
       )}
     </section>
   );

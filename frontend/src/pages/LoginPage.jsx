@@ -38,6 +38,9 @@ const LoginPage = () => {
   return (
 
     <div style={{ padding: "2rem", maxWidth: "400px", margin: "0 auto" }}>
+      <div style={{ textAlign: "center", marginTop: "1rem" }}>
+        <img src="/logo2.png" alt="Bikeatize Logo" style={{ width: "150px", marginBottom: "1rem" }} />
+      </div>
       <h2>Logowanie</h2>
       <form onSubmit={handleLogin}>
         <input

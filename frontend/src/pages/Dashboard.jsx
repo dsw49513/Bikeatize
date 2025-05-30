@@ -3,18 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
-import TripsHistory from "../components/TripsHistory";
 import RideTracker from "../components/RideTracker";
+import TripsHistory from "../components/TripsHistory";
 import { getTripHistory, deleteTrip, getTotalDistance } from "../api/tripAPI";
 
 const Dashboard = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
-  const [points, setPoints] = useState(null);
-  const [distance, setDistance] = useState(null);
-  const [trips, setTrips] = useState([]);
   const navigate = useNavigate();
-  const { token, isAuthenticated, logout, userId } = useContext(AuthContext);
+  const [trips, setTrips] = useState([]); 
+  const [distance, setDistance] = useState(0); 
+  const [points, setPoints] = useState(null);
+  const { token, isAuthenticated, userId, logout } = useContext(AuthContext);
 
   useEffect(() => {
     if (!isAuthenticated || !token) {
@@ -35,55 +35,18 @@ const Dashboard = () => {
         console.error(err);
       }
     );
-
-    // 🔐 Fetch punktów z backendu
-    fetch("http://localhost:8000/api/bt_points/me", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        setPoints(data.points);
-        setDistance(data.total_distance);
-      })
-      .catch((err) => {
-        console.error("Błąd pobierania punktów:", err);
-      });
-
-    // 📦 Pobranie historii tras i dystansu
-    if (userId) {
-      loadTrips();
-    }
-  }, [isAuthenticated, token, navigate, userId]);
-
-const loadTrips = async () => {
-  try {
-    const tripsData = await getTripHistory(userId);
-    console.log("Dane z historii tras:", tripsData);
-
-    const distanceData = await getTotalDistance(userId);
-    console.log("Dane z dystansu:", distanceData);
-
-    setTrips(tripsData.trips);
-    setDistance(distanceData.total_distance || 0);
-  } catch (err) {
-    console.error("Błąd ładowania tras:", err.message);
-  }
-};
-
-
-  const handleDeleteTrip = async (tripId) => {
+  }, [isAuthenticated, token, navigate]);
+  const loadTrips = async () => {
     try {
-      await deleteTrip(tripId);
-      await loadTrips();
+      const tripsData = await getTripHistory(userId);
+      const distanceData = await getTotalDistance(userId);
+
+      setTrips(tripsData.trips);
+      setDistance(distanceData.total_distance || 0);
     } catch (err) {
-      console.error("Błąd usuwania trasy:", err.message);
+      console.error("Błąd ładowania tras:", err.message);
     }
   };
-
   // 🧭 Marker domyślny (ikonka lokalizacji)
   const markerIcon = new L.Icon({
     iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
@@ -94,9 +57,10 @@ const loadTrips = async () => {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <button onClick={logout}>Wyloguj się</button>
-      <h2>🎯 Dashboard użytkownika</h2>
-
+      
+     <section>
+      <RideTracker onTripStopped={loadTrips}/>
+      </section>
       <section>
         <h3>📍 Twoja lokalizacja:</h3>
         {location ? (
@@ -129,23 +93,7 @@ const loadTrips = async () => {
         </section>
       )}
 
-      <section>
-        <h3>🏅 Punkty / Nagrody:</h3>
-        <p>{points !== null ? `${points} pkt` : "Ładowanie..."}</p>
-      </section>
-
-      <section>
-        <h3>🚴 Dystans całkowity:</h3>
-        <p>{typeof distance === "number" ? `${distance.toFixed(2)} km` : "Ładowanie..."}</p>
-      </section>
-
-      <section>
-        <TripsHistory trips={trips} onDelete={handleDeleteTrip} />
-      </section>
-
-      <section>
-        <RideTracker onTripStopped={loadTrips} />
-      </section>
+      
     </div>
   );
 };
