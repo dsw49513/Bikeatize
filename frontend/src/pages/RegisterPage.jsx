@@ -41,7 +41,7 @@ const RegisterPage = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          style={{ display: "block", width: "100%", marginBottom: "1rem", boxSizing: "border-box" }}
         />
         <input
           type="email"
@@ -49,7 +49,7 @@ const RegisterPage = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          style={{ display: "block", width: "100%", marginBottom: "1rem", boxSizing: "border-box" }}
         />
         <input
           type="password"
@@ -57,9 +57,14 @@ const RegisterPage = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          style={{ display: "block", width: "100%", marginBottom: "1rem", boxSizing: "border-box" }}
         />
-        <button type="submit" style={{ width: "100%" }}>Zarejestruj się</button>
+        <button type="submit" style={{
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "0.5rem",
+    marginBottom: "1rem"
+  }}>Zarejestruj się</button>
       </form>
 
       <div style={{ marginTop: "1.5rem", textAlign: "center" }}>

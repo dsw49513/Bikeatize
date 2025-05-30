@@ -49,7 +49,7 @@ const LoginPage = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          style={{ display: "block", width: "100%", marginBottom: "1rem", boxSizing: "border-box" }}
 
         />
         <input
@@ -59,9 +59,14 @@ const LoginPage = () => {
           onChange={(e) => setPassword(e.target.value)}
 
           required
-          style={{ display: "block", width: "100%", marginBottom: "1rem" }}
+          style={{ display: "block", width: "100%", marginBottom: "1rem" , boxSizing: "border-box"}}
         />
-        <button type="submit" style={{ width: "100%" }}>Zaloguj</button>
+        <button type="submit" style={{
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "0.5rem",
+    marginBottom: "1rem"
+  }}>Zaloguj</button>
       </form>
 
       <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
