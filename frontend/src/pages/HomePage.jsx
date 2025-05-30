@@ -5,10 +5,15 @@ const HomePage = () => {
   return (
     <div>
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
-        <img src="/logo2.png" alt="Bikeatize Logo" style={{ width: "150px", marginBottom: "1rem" }} />
+        <img src="/logo2.png" alt="Bikeatize Logo" style={{ width: "150px" }} />
+        <br/>
+         <img src="/logo3.png" alt="Bikeatize Logo text" style={{ width: "70%", marginTop: "-1.5rem", marginBottom: "1rem" }} />
       </div>
-      <div style={{ padding: "2rem", textAlign: "center" }}>
-        <h1>🚴‍♂️ Bikeatize</h1>
+      <div style={{ padding: "2rem", textAlign: "center", marginTop:"5rem" }}>
+               <h1 style={{
+      textShadow: "0 0 30px rgba(255,255,255,0.8), 0 0px 1px white", transform: "scaleX(-1)"
+    }}>🚴‍♂️</h1>
+
         <p>Aplikacja dla entuzjastów jazdy na rowerze</p>
       </div>
       <div style={{ textAlign: "center", marginTop: "1rem" }}>
