@@ -56,7 +56,7 @@ useEffect(() => {
     if (!userId) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/start_trip/${userId}`, {
+      const res = await fetch(`${API_URL}/start_trip/${userId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
