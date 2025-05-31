@@ -60,6 +60,14 @@ def check_achievements(distance: float, start_time: datetime) -> list[str]:
 @router.post("/start_trip/{user_id}")
 async def start_trip(user_id: int, db: AsyncSession = Depends(get_db)):
     try:
+        result = await db.execute(
+            text("SELECT trip_id FROM trips WHERE user_id = :user_id AND end_time IS NULL"),
+            {"user_id": user_id}
+        )
+        active_trip = result.scalar()
+        if active_trip:
+            return {"trip_id": active_trip}
+
         await db.execute(
             text("INSERT INTO trips (user_id, start_time) VALUES (:user_id, NOW())"),
             {"user_id": user_id}
@@ -71,7 +79,7 @@ async def start_trip(user_id: int, db: AsyncSession = Depends(get_db)):
 
         if trip_id is None:
             raise ValueError("Nie udało się pobrać trip_id!")
-
+        await db.commit()
         return {"trip_id": trip_id, "message": "Trasa rozpoczęta."}
     except Exception as e:
         return {"error": str(e)}
@@ -111,6 +119,9 @@ async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
     )
     start_time = start_time_query.scalar()
 
+    if start_time is None:
+        raise HTTPException(
+            status_code=404, detail="Nie znaleziono start_time dla tej trasy.")
     # Sprawdź osiągnięcia
     achievements = check_achievements(total_distance, start_time)
 
@@ -148,7 +159,18 @@ async def stop_trip(trip_id: int, db: AsyncSession = Depends(get_db)):
     }
 
 
+@router.get("/active_trip/{user_id}")
+async def get_active_trip(user_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(
+        text("SELECT trip_id FROM trips WHERE user_id = :user_id AND end_time IS NULL"),
+        {"user_id": user_id}
+    )
+    trip_id = result.scalar()
+    return {"trip_id": trip_id}
+
 # 📜 Historia tras użytkownika
+
+
 @router.get("/trip_history/{user_id}")
 async def trip_history(user_id: int, db: AsyncSession = Depends(get_db)):
     query = await db.execute(

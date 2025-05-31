@@ -10,7 +10,7 @@ from backend.schemas.user import UserLogin
 from backend.core.security import create_refresh_token
 import os
 from dotenv import load_dotenv
-from jwt import PyJWTError as JWTError, decode as jwt_decode
+from jwt import PyJWTError as JWTError, decode as jwt_decode, ExpiredSignatureError
 
 router = APIRouter()
 
@@ -75,8 +75,12 @@ async def logout(authorization: str = Header(...), db: AsyncSession = Depends(ge
                 status_code=401, detail="Nieprawidłowy nagłówek Authorization")
         token = authorization.split(" ")[1]
 
-        payload = jwt_decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email = payload.get("sub")
+        try:
+            payload = jwt_decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            email = payload.get("sub")
+        except ExpiredSignatureError:
+
+            return {"message": "Token wygasł, ale wylogowano lokalnie."}
         if not email:
             raise HTTPException(status_code=401, detail="Błędny token")
 

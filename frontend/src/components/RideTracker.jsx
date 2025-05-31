@@ -1,15 +1,46 @@
-import React, { useState, useContext, useRef } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
 
-const RideTracker = ({ onTripStopped }) => {
+const RideTracker = ({ onTripStarted, onTripStopped }) => {
   const { token } = useContext(AuthContext);
   const [tripId, setTripId] = useState(null);
   const [distance, setDistance] = useState(null);
   const [points, setPoints] = useState(null);
   const [achievements, setAchievements] = useState([]);
   const intervalRef = useRef(null);
-
+  
+  useEffect(() => {
+ 
+  if (tripId) {
+    intervalRef.current = setInterval(sendLocationUpdate, 5000);
+  } else {
+    clearInterval(intervalRef.current);
+  }
+  
+  return () => clearInterval(intervalRef.current);
+}, [tripId]);
+useEffect(() => {
+    const fetchActiveTrip = async () => {
+      if (!token) return;
+      try {
+        const userId = getUserId();
+        const res = await fetch(`http://localhost:8000/api/active_trip/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.trip_id) setTripId(data.trip_id);
+        }
+      } catch (err) {
+        console.error("Błąd pobierania aktywnej trasy:", err);
+      }
+    };
+    fetchActiveTrip();
+  }, [token]);
   const getUserId = () => {
     try {
       const decoded = jwtDecode(token);
@@ -37,10 +68,16 @@ const RideTracker = ({ onTripStopped }) => {
         const err = await res.text();
         throw new Error(`Błąd: ${res.status} ${err}`);
       }
-
-      const data = await res.json();
-      setTripId(data.trip_id);
-      intervalRef.current = setInterval(sendLocationUpdate, 5000);
+      if (onTripStarted) onTripStarted();
+      // setLoading(true);
+      // setTimeout(() => window.location.reload(), 100);
+    // window.location.reload();
+    // const data = await res.json();
+    // if (data.trip_id) {
+    //   setTripId(data.trip_id); 
+    // } else {
+    //   alert("Nie udało się rozpocząć trasy (brak trip_id).");
+    // }
     } catch (err) {
       console.error("Błąd przy rozpoczynaniu trasy:", err);
       alert("Nie udało się rozpocząć trasy.");
@@ -61,13 +98,22 @@ const RideTracker = ({ onTripStopped }) => {
 
         try {
           // ⛳ WRÓĆ do wersji z parametrami URL – zgodna z Twoim backendem
-          await fetch(`http://localhost:8000/api/update_location/${tripId}?latitude=${latitude}&longitude=${longitude}`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-          });
+          // await fetch(`http://localhost:8000/api/update_location/${tripId}?latitude=${latitude}&longitude=${longitude}`, {
+          //   method: "POST",
+          //   headers: {
+          //     Authorization: `Bearer ${token}`,
+          //     "Content-Type": "application/json",
+          //   },
+          // });
+          await fetch(`http://localhost:8000/api/update_location/${tripId}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ latitude, longitude }),
+        });
+        console.log("Lokalizacja wysłana:", { latitude, longitude });
         } catch (err) {
           console.error("Błąd przy wysyłaniu lokalizacji:", err);
         }
@@ -114,6 +160,7 @@ const RideTracker = ({ onTripStopped }) => {
     <section>
       <h3>🛰️ Śledzenie trasy:</h3>
 
+      
       {tripId ? (
         <div>
           <p>Trasa aktywna – ID: {tripId}</p>

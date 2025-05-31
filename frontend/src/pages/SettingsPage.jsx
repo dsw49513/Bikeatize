@@ -18,12 +18,19 @@ const SettingsPage = () => {
       });
 
       if (response.ok) {
-        logout(); 
+      logout();
+      navigate("/login");
+    } else {
+      // Jeśli błąd dotyczy wygasłego tokena, wyloguj lokalnie
+      const err = await response.text();
+      if (err.includes("Signature has expired")) {
+        logout();
         navigate("/login");
-      } else {
-        console.error("Nie udało się usunąć refresh tokena:", await response.text());
-        alert("Wystąpił problem podczas wylogowywania.");
+        return;
       }
+      console.error("Nie udało się usunąć refresh tokena:", err);
+      alert("Wystąpił problem podczas wylogowywania.");
+    }
     } catch (error) {
       console.error("Błąd podczas wylogowywania:", error);
       alert("Nie udało się połączyć z serwerem.");

@@ -18,7 +18,10 @@ const Dashboard = () => {
   const [distance, setDistance] = useState(0); 
   const [points, setPoints] = useState(null);
   const { token, isAuthenticated, userId, logout } = useContext(AuthContext);
-
+  const [rideKey, setRideKey] = useState(0);
+  const handleTripStarted = () => {
+    setRideKey(k => k + 1);
+  };
   useEffect(() => {
     if (!isAuthenticated || !token) {
       navigate("/login");
@@ -80,7 +83,7 @@ useEffect(() => {
     <div style={{ padding: "2rem" }}>
       
      <section>
-      <RideTracker onTripStopped={loadTrips}/>
+      <RideTracker key={rideKey} onTripStarted={handleTripStarted} onTripStopped={loadTrips}/>
       </section>
       <section>
         <h3>📍 Twoja lokalizacja:</h3>
