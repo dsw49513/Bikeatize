@@ -76,6 +76,18 @@ Edit
 cd frontend
 npm install
 npm run dev
+4. Zmienne środowiskowe (.env)
+W katalogu głównym projektu 
+```Bikeatize/.env
+DATABASE_URL=mysql+aiomysql://user:haslo@localhost:3306/bikeatize_db
+ALEMBIC_URL=mysql+pymysql://user:haslo@localhost:3306/bikeatize_db
+
+SECRET_KEY=supersekretnyklucz123
+```
+W folderze frontend
+```Bikeatize/frontend/.env
+VITE_OPENWEATHER_API_KEY=klucz https://home.openweathermap.org/api_keys
+```
 🔐 Backend – najważniejsze endpointy
 Metoda	Endpoint	Opis
 POST	/api/register	Rejestracja użytkownika

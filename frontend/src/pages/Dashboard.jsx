@@ -7,9 +7,12 @@ import RideTracker from "../components/RideTracker";
 import TripsHistory from "../components/TripsHistory";
 import { getTripHistory, deleteTrip, getTotalDistance } from "../api/tripAPI";
 
+const OPENWEATHER_API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY;
+
 const Dashboard = () => {
   const [location, setLocation] = useState(null);
   const [error, setError] = useState(null);
+  const [weather, setWeather] = useState(null);
   const navigate = useNavigate();
   const [trips, setTrips] = useState([]); 
   const [distance, setDistance] = useState(0); 
@@ -36,6 +39,24 @@ const Dashboard = () => {
       }
     );
   }, [isAuthenticated, token, navigate]);
+
+useEffect(() => {
+    if (location && OPENWEATHER_API_KEY) {
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=pl`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          setWeather({
+            temp: Math.round(data.main.temp),
+            icon: data.weather[0].icon,
+            
+          });
+        })
+        .catch(() => setWeather(null));
+    }
+  }, [location]);
+
   const loadTrips = async () => {
     try {
       const tripsData = await getTripHistory(userId);
@@ -76,7 +97,20 @@ const Dashboard = () => {
 
       {location && (
         <section>
-          <h3>🗺️ Mapa</h3>
+           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <h3 style={{ margin: 0 }}>🗺️ Mapa</h3>
+            {weather && (
+              <span className="weather-widget">
+                <img
+                  src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
+                  alt={weather.desc}
+                  title={weather.desc}
+                  style={{ width: 36, height: 36, verticalAlign: "middle" }}
+                />
+                <span style={{ fontSize: "1.2rem" }}>{weather.temp}°C</span>
+              </span>
+            )}
+          </div>
           <MapContainer
             center={[location.lat, location.lng]}
             zoom={13}

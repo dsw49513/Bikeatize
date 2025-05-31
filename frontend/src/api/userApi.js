@@ -115,7 +115,11 @@ export async function getTotalKilometers(token) {
       Authorization: `Bearer ${token}`,
     },
   });
-
+if (res.status === 401) {
+    if (logout) logout();
+    if (navigate) navigate("/login");
+    throw new Error('Unauthorized');
+  }
   if (!res.ok) {
     throw new Error('Błąd pobierania kilometrów');
   }
@@ -132,7 +136,11 @@ export async function startRide(token) {
       'Content-Type': 'application/json',
     },
   });
-
+ if (res.status === 401) {
+    if (logout) logout();
+    if (navigate) navigate("/login");
+    throw new Error('Unauthorized');
+  }
   if (!res.ok) {
     throw new Error('Błąd rozpoczęcia trasy');
   }

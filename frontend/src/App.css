@@ -226,3 +226,19 @@ a:hover {
   color: #4caf50; 
   text-decoration: underline; 
 }
+
+
+.weather-widget {
+  display: flex;
+  margin-bottom: 0.5rem;;
+  align-items: center;
+  font-weight: 400;
+  background: rgba(255,255,255,0.15);
+  border-radius: 1.5rem;
+  padding-right: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  backdrop-filter: blur(2px);
+  min-width: 70px;
+  justify-content: flex-end;
+}
+
