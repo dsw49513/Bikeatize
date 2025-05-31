@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Ranking = () => {
   const [ranking, setRanking] = useState([]);
@@ -9,7 +9,7 @@ const Ranking = () => {
   const fetchRanking = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/ranking?filter=${filter}`);
+      const response = await fetch(`${API_URL}/ranking?filter=${filter}`);
       const data = await response.json();
       if (Array.isArray(data)) {
         setRanking(data);

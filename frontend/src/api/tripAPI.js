@@ -1,4 +1,5 @@
-const BASE_URL = "http://localhost:8000/api/trips";
+const API_URL = import.meta.env.VITE_API_URL;
+const BASE_URL = `${API_URL}/trips`;
 
 // Pobranie historii tras użytkownika
 export async function getTripHistory(userId) {

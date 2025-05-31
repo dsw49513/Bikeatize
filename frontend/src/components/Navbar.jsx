@@ -25,6 +25,7 @@ const Navbar = () => {
         width: "100%",
         backgroundColor: "navy", 
         color: "white",
+        zIndex:1200,
       }}
     >
       <BottomNavigationAction

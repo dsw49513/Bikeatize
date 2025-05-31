@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import TripsHistory from "../components/TripsHistory";
 import { getTripHistory, deleteTrip, getTotalDistance } from "../api/tripAPI";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const RidesPage = () => {
   const [points, setPoints] = useState(null);
   const [distance, setDistance] = useState(null);
@@ -17,7 +17,7 @@ const RidesPage = () => {
       return;
     }
 
-    fetch("http://localhost:8000/api/bt_points/me", {
+    fetch(`${API_URL}/bt_points/me`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,

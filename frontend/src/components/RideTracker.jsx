@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { jwtDecode } from "jwt-decode";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const RideTracker = ({ onTripStarted, onTripStopped }) => {
   const { token } = useContext(AuthContext);
   const [tripId, setTripId] = useState(null);
@@ -25,7 +25,7 @@ useEffect(() => {
       if (!token) return;
       try {
         const userId = getUserId();
-        const res = await fetch(`http://localhost:8000/api/active_trip/${userId}`, {
+        const res = await fetch(`${API_URL}/active_trip/${userId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
@@ -56,7 +56,7 @@ useEffect(() => {
     if (!userId) return;
 
     try {
-      const res = await fetch(`http://localhost:8000/api/start_trip/${userId}`, {
+      const res = await fetch(`${API_URL}/api/start_trip/${userId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -98,14 +98,14 @@ useEffect(() => {
 
         try {
           // ⛳ WRÓĆ do wersji z parametrami URL – zgodna z Twoim backendem
-          // await fetch(`http://localhost:8000/api/update_location/${tripId}?latitude=${latitude}&longitude=${longitude}`, {
+          // await fetch(`${API_URL}/update_location/${tripId}?latitude=${latitude}&longitude=${longitude}`, {
           //   method: "POST",
           //   headers: {
           //     Authorization: `Bearer ${token}`,
           //     "Content-Type": "application/json",
           //   },
           // });
-          await fetch(`http://localhost:8000/api/update_location/${tripId}`, {
+          await fetch(`${API_URL}/update_location/${tripId}`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -130,7 +130,7 @@ useEffect(() => {
     clearInterval(intervalRef.current);
 
     try {
-      const res = await fetch(`http://localhost:8000/api/stop_trip/${tripId}`, {
+      const res = await fetch(`${API_URL}/stop_trip/${tripId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

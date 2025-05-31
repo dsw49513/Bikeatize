@@ -86,7 +86,8 @@ SECRET_KEY=supersekretnyklucz123
 ```
 W folderze frontend
 ```Bikeatize/frontend/.env
-VITE_OPENWEATHER_API_KEY=klucz https://home.openweathermap.org/api_keys
+VITE_OPENWEATHER_API_KEY=twój klucz https://home.openweathermap.org/api_keys
+VITE_API_URL=https://twoj-backend.pl/api
 ```
 🔐 Backend – najważniejsze endpointy
 Metoda	Endpoint	Opis

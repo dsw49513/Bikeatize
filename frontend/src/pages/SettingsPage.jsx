@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-
+const API_URL = import.meta.env.VITE_API_URL;
 const SettingsPage = () => {
   const { logout } = useContext(AuthContext); 
   const navigate = useNavigate();
@@ -9,7 +9,7 @@ const SettingsPage = () => {
   const handleLogout = async () => {
     try {
       
-      const response = await fetch("http://localhost:8000/api/logout", {
+      const response = await fetch(`${API_URL}/logout`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
